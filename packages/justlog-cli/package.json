@@ -1,0 +1,28 @@
+{
+    "name": "justlog-cli",
+    "version": "0.1.0",
+    "main": "build/index.js",
+    "author": "Fuu",
+    "license": "MIT",
+    "bin": {
+        "justlog": "./build/index.js"
+    },
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc -w",
+        "justlog": "node ./build/index.js"
+    },
+    "devDependencies": {
+        "@types/fs-extra": "^9.0.13",
+        "@types/uuid": "^8.3.4",
+        "prettier": "^2.5.1",
+        "typescript": "^4.5.5"
+    },
+    "dependencies": {
+        "chalk": "^4.1.2",
+        "commander": "^9.0.0",
+        "fs-extra": "^10.0.0",
+        "tslib": "^2.3.1",
+        "uuid": "^8.3.2"
+    }
+}

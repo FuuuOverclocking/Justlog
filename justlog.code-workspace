@@ -1,0 +1,21 @@
+{
+    "folders": [
+        {
+            "name": "✨ justlog",
+            "path": "."
+        },
+        {
+            "name": "📦 justlog-cli",
+            "path": "packages\\justlog-cli"
+        },
+        {
+            "name": "📦 justmark",
+            "path": "packages\\justmark"
+        },
+        {
+            "name": "📦 shared",
+            "path": "packages\\shared"
+        }
+    ],
+    "settings": {}
+}

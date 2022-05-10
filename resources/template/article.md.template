@@ -1,0 +1,15 @@
+```blog
+uuid = '%BLOG_UUID%'
+copyright = 'CC BY-ND 4.0'
+topics = ['rust', 'net']
+lang = '简体中文'
+bgImage = ''
+```
+
+# 博客标题
+
+博客内容
+
+```tsx embed
+<Button />
+```

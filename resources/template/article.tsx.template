@@ -1,0 +1,15 @@
+/// <reference path="%JUSTLOG_DIR%/resources/article.d.ts" />
+
+import React from '#react';
+
+const Button: React.FunctionComponent = () => {
+    return <button></button>;
+};
+
+declare function blog(): Blog;
+registerBlog({
+    ...blog(),
+    ...{
+        // 在这里扩展 Blog 对象...
+    },
+});

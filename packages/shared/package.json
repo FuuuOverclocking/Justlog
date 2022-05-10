@@ -1,0 +1,9 @@
+{
+    "name": "shared",
+    "main": "./build/index.js",
+    "license": "MIT",
+    "version": "0.1.0",
+    "dependencies": {
+        "react": "^18.1.0"
+    }
+}

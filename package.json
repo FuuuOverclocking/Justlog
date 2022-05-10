@@ -1,0 +1,20 @@
+{
+    "name": "justlog",
+    "author": {
+        "email": "g.for.xyz@gmail.com",
+        "name": "Fuu"
+    },
+    "version": "0.1.0",
+    "private": true,
+    "type": "commonjs",
+    "license": "MIT",
+    "bin": {
+        "justlog": "./packages/justlog-cli/build/index.js"
+    },
+    "workspaces": [
+        "packages/*"
+    ],
+    "dependencies": {
+        "react": "^18.1.0"
+    }
+}
