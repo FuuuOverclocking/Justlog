@@ -16,7 +16,5 @@ console.log(imageSrc);
 declare function blog(): Blog;
 registerBlog({
     ...blog(),
-    ...{
-        // 在这里扩展 Blog 对象...
-    },
+    // 在这里扩展 Blog 对象...
 });
