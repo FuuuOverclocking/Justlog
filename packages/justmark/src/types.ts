@@ -5,7 +5,7 @@ import { IFs } from 'memfs';
 
 export { Blog, BlogMeta };
 
-export type Target = 'blog.tsx' | 'blog-bundle.js' | 'zhihu.md';
+export type Target = 'blog.tsx' | 'blog-bundle' | 'zhihu.md';
 
 export interface CompilerOptions {
     /**
@@ -19,7 +19,7 @@ export interface CompilerOptions {
     outputDir: string;
 
     /**
-     * 构建目标列表. 列表项可以是 'blog.tsx', 'blog-bundle.js', 'zhihu.md'.
+     * 构建目标列表. 列表项可以是 'blog.tsx', 'blog-bundle', 'zhihu.md'.
      */
     targets: Target[];
 

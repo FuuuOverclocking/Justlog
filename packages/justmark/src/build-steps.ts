@@ -153,15 +153,15 @@ export namespace Rebuild {
     function resolveTargets(targets: Target[]): BuildStep[] {
         const buildStepMap = {
             'blog.tsx': CompileMarkdownAndMix.step,
-            'blog-bundle.js': CompileTsxAndPack.step,
+            'blog-bundle': CompileTsxAndPack.step,
             'zhihu.md': ConvertToZhihu.step,
         };
 
         const targetsSet = new Set(targets);
         const buildOrder: Target[] = [];
 
-        if (targetsSet.has('blog-bundle.js')) {
-            buildOrder.push('blog.tsx', 'blog-bundle.js');
+        if (targetsSet.has('blog-bundle')) {
+            buildOrder.push('blog.tsx', 'blog-bundle');
         } else if (targetsSet.has('blog.tsx')) {
             buildOrder.push('blog.tsx');
         }
@@ -247,7 +247,7 @@ namespace CompileTsxAndPack {
                 configFactory({
                     entry: path.join(options.inputDir, tmpFilePath),
                     inputDir: options.inputDir,
-                    outputDir: options.outputDir,
+                    outputDir: path.join(options.outputDir, './blog-bundle'),
                 }),
             );
             compiler.inputFileSystem = options.inputFileSystem;
