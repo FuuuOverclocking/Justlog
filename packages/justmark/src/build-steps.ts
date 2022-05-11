@@ -240,6 +240,11 @@ namespace CompileTsxAndPack {
             await FSTools.InputDir.unlink(options, tmpFilePath);
         }
 
+        const info = {
+            needModule: importDeclToTranspile.map(decl => decl.moduleRealName),
+        };
+        FSTools.OutputDir.writeFile(options, './blog-bundle/info.json', JSON.stringify(info));
+
         await next();
 
         async function pack() {
@@ -265,12 +270,14 @@ namespace CompileTsxAndPack {
     function findImportDeclToTranspile(sourceFile: ts.SourceFile): Array<{
         name: string;
         moduleName: string;
+        moduleRealName: string;
         pos: number;
         end: number;
     }> {
         const importDeclToTranspile: Array<{
             name: string;
             moduleName: string;
+            moduleRealName: string;
             pos: number;
             end: number;
         }> = [];
@@ -309,6 +316,7 @@ namespace CompileTsxAndPack {
             importDeclToTranspile.push({
                 name: importClause.name.escapedText as string,
                 moduleName,
+                moduleRealName: moduleName.substring(1),
                 pos: _node.pos + _node.getLeadingTriviaWidth(),
                 end: _node.end,
             });
@@ -322,6 +330,7 @@ namespace CompileTsxAndPack {
         importDeclToTranspile: Array<{
             name: string;
             moduleName: string;
+            moduleRealName: string;
             pos: number;
             end: number;
         }>,
@@ -337,8 +346,7 @@ namespace CompileTsxAndPack {
         let codeImportTranspiled = '';
         for (const [i, decl] of importDeclToTranspile.entries()) {
             codeImportTranspiled += originalParts[i];
-            const moduleRealName = decl.moduleName.substring(1); // 移除了开头的 #
-            codeImportTranspiled += `const ${decl.name} = giveme('${moduleRealName}');`;
+            codeImportTranspiled += `const ${decl.name} = giveme('${decl.moduleRealName}');`;
         }
         codeImportTranspiled += originalParts[originalParts.length - 1];
 
