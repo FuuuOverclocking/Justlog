@@ -6,7 +6,6 @@ import { MdCompiler } from './compiler/md-compiler';
 import { configFactory } from './webpack-config/webpack.config';
 import { format } from './utils/formatter';
 import { debug, panic, panicIf } from './utils/debug';
-import { noop } from './utils/tools';
 import { CompilerOptions, FileSystem, Target } from './types';
 
 type Source = 'article.md' | 'article.tsx';
@@ -29,7 +28,7 @@ export async function checkAndCompleteCompilerOptions(
     );
     panicIf(
         options.onBuildComplete != null && typeof options.onBuildComplete !== 'function',
-        'onBuildComplete 应为 undefined | (() => void).',
+        'onBuildComplete 应为 undefined | (() => Promise<void> | void).',
     );
 
     if (!options.inputDir.startsWith('/')) {
@@ -49,7 +48,7 @@ export async function checkAndCompleteCompilerOptions(
     options.outputFileSystem ??= fs;
 
     options.silent = !!options.silent;
-    options.onBuildComplete ??= noop;
+    options.onBuildComplete ??= null;
 }
 
 export namespace Rebuild {
@@ -81,6 +80,14 @@ export namespace Rebuild {
 
         const buildTime = ((Date.now() - timeBegin) / 1000).toFixed(3);
         debug.withTime.info(`编译完成, 用时 ${buildTime} 秒.`);
+
+        if (options.onBuildComplete) {
+            const timeBegin = Date.now();
+            debug.withTime.info(`执行 onBuildComplete...`);
+            await options.onBuildComplete();
+            const runningTime = ((Date.now() - timeBegin) / 1000).toFixed(3);
+            debug.withTime.info(`执行 onBuildComplete 完成, 用时 ${runningTime} 秒.`);
+        }
     }
 
     async function ensureIODir(options: RequiredCompilerOptions): Promise<void> {

@@ -27,7 +27,7 @@ export interface CompilerOptions {
      * 当构建完成后, onBuildComplete 会被调用.
      * build(..) 过程中, 它至多只被调用一次, 而 watch(..) 过程中可能被调用多次.
      */
-    onBuildComplete?: () => void;
+    onBuildComplete?: null | (() => Promise<void> | void);
 
     /**
      * 可使用内存文件系统 memfs 替换默认的硬盘文件系统.
