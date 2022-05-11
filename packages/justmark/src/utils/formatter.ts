@@ -2,7 +2,7 @@ import prettier from 'prettier';
 import path from 'path';
 
 const prettierrcPromise = prettier.resolveConfig(
-    path.resolve(__dirname, '../.prettierrc.toml'),
+    path.resolve(__dirname, '../../../../.prettierrc.toml'),
 );
 
 export async function format(source: string): Promise<{
