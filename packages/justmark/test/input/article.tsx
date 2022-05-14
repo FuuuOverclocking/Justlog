@@ -6,8 +6,8 @@ import './test-css.css';
 import './test-scss.scss';
 import imageSrc from './test-image.jpg';
 
-const Button: React.FunctionComponent = () => {
-    return <button></button>;
+const Button: React.FunctionComponent<{ children: React.ReactNode }> = (props) => {
+    return <button>{props.children}</button>;
 };
 
 console.log(bar);
