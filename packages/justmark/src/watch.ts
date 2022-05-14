@@ -4,7 +4,7 @@ import { checkAndCompleteCompilerOptions, Rebuild } from './build-steps';
 import { timeout } from 'shared';
 
 /**
- * 监视给定博客文件夹, 持续编译到给定目标, 输出到文件系统, 或调用用户提供的 receiver.
+ * 监视给定博客文件夹, 持续编译到给定目标, 输出到文件系统. 可使用虚拟文件系统.
  *
  * 容忍输入的博客文件的错误. 当输入文件恢复正确时, 能再次编译.
  *

@@ -3,7 +3,7 @@ import debug, { DebugLevel } from './utils/debug';
 import { checkAndCompleteCompilerOptions, Rebuild } from './build-steps';
 
 /**
- * 给定博客文件夹, 编译到给定目标, 输出到文件系统, 或调用用户提供的 receiver.
+ * 给定博客文件夹, 编译到给定目标, 输出到文件系统. 可使用虚拟文件系统.
  *
  * @param options 编译选项
  * @returns 编译完成时, Promise resolve(void); 发生错误时, reject(err).
