@@ -5,15 +5,23 @@
             "path": "."
         },
         {
-            "name": "📦 justlog-cli",
+            "name": "🔮 justlog-cli",
             "path": "packages\\justlog-cli"
         },
         {
-            "name": "📦 justmark",
+            "name": "📦 justlog-proto",
+            "path": "packages\\justlog-proto"
+        },
+        {
+            "name": "🚀 justlog-proto-backend",
+            "path": "packages\\justlog-proto-backend"
+        },
+        {
+            "name": "⌨️ justmark",
             "path": "packages\\justmark"
         },
         {
-            "name": "📦 shared",
+            "name": "🚌 shared",
             "path": "packages\\shared"
         }
     ],

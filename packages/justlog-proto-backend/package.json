@@ -1,0 +1,22 @@
+{
+    "name": "justlog-proto-backend",
+    "version": "1.0.0",
+    "main": "./build/index.js",
+    "license": "MIT",
+    "scripts": {
+        "start": "tsc && node ./build/index.js"
+    },
+    "dependencies": {
+        "bufferutil": "^4.0.6",
+        "fs-extra": "^10.1.0",
+        "koa": "^2.13.4",
+        "koa-static": "^5.0.0",
+        "utf-8-validate": "^5.0.9",
+        "ws": "^8.6.0"
+    },
+    "devDependencies": {
+        "@types/fs-extra": "^9.0.13",
+        "@types/koa": "^2.13.4",
+        "@types/koa-static": "^4.0.2"
+    }
+}

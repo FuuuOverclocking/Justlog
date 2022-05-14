@@ -1,0 +1,26 @@
+@import-normalize;
+
+body {
+    margin: 0;
+}
+
+$w: 900px;
+@media (min-width: $w) {
+    .blog-shell {
+        position    : absolute;
+        left        : 20vw;
+        width       : 950px;
+        min-height  : 100vh;
+        border-left : 1px solid black;
+        border-right: 1px solid black;
+    }
+}
+
+@media (max-width: $w) {
+    .blog-shell {
+        position    : absolute;
+        left        : 0px;
+        max-width   : 950px;
+        min-height  : 100vh;
+    }
+}
