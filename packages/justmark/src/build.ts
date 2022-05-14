@@ -1,5 +1,5 @@
 import { CompilerOptions } from './types';
-import { debug, DebugLevel } from './utils/debug';
+import debug, { DebugLevel } from './utils/debug';
 import { checkAndCompleteCompilerOptions, Rebuild } from './build-steps';
 
 /**

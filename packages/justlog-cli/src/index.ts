@@ -2,7 +2,7 @@
 
 import { program } from 'commander';
 import { getSettings, settings } from './settings';
-import { panic } from './utils/debug';
+import debug from './utils/debug';
 import chalk from 'chalk';
 
 import { newBlog } from './actions/new-blog';
@@ -46,9 +46,10 @@ function checkSettings(): true {
     if (getSettings()) return true;
 
     // prettier-ignore
-    panic(
+    debug.panic(
         `需先设置 博客根文件夹 以继续. 运行 ${
             chalk.bgBlue.white('justlog set blogRootDir "X:/path/to/blogs"')
         } 以设置.`,
     );
+    return true; // 这条语句不可达, 但因为 tsc 是个蠢货
 }

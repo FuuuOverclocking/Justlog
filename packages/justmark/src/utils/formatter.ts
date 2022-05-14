@@ -1,8 +1,8 @@
 import prettier from 'prettier';
-import path from 'path';
+import { packagePaths } from 'shared';
 
 const prettierrcPromise = prettier.resolveConfig(
-    path.resolve(__dirname, '../../../../.prettierrc.toml'),
+    packagePaths.join.justlog('./.prettierrc.toml'),
 );
 
 export async function format(source: string): Promise<{

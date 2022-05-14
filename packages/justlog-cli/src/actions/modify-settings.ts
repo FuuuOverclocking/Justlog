@@ -1,6 +1,6 @@
 import { getSettings, setSettings } from '../settings';
 import { JustlogSettings } from '../types';
-import { panic } from '../utils/debug';
+import debug from '../utils/debug';
 
 export async function modifySettings(key: string, value: string) {
     if (key === 'blogRootDir') {
@@ -13,5 +13,5 @@ export async function modifySettings(key: string, value: string) {
         return;
     }
 
-    panic('未知的 key: ' + key);
+    debug.panic('未知的 key: ' + key);
 }

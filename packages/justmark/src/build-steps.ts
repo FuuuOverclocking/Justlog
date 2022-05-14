@@ -5,7 +5,7 @@ import webpack from 'webpack';
 import { MdCompiler } from './compiler/md-compiler';
 import { configFactory } from './webpack-config/webpack.config';
 import { format } from './utils/formatter';
-import { debug, panic, panicIf } from './utils/debug';
+import debug from './utils/debug';
 import { CompilerOptions, FileSystem, Target } from './types';
 
 type Source = 'article.md' | 'article.tsx';
@@ -20,26 +20,26 @@ type BuildStep = (
 export async function checkAndCompleteCompilerOptions(
     options: CompilerOptions,
 ): Promise<void> {
-    panicIf(typeof options.inputDir !== 'string', 'inputDir 不是字符串.');
-    panicIf(typeof options.outputDir !== 'string', 'outputDir 不是字符串.');
-    panicIf(
+    debug.panicIf(typeof options.inputDir !== 'string', 'inputDir 不是字符串.');
+    debug.panicIf(typeof options.outputDir !== 'string', 'outputDir 不是字符串.');
+    debug.panicIf(
         !Array.isArray(options.targets) || options.targets.length === 0,
         '未指定 target.',
     );
-    panicIf(
+    debug.panicIf(
         options.onBuildComplete != null && typeof options.onBuildComplete !== 'function',
         'onBuildComplete 应为 undefined | (() => Promise<void> | void).',
     );
 
     if (!options.inputDir.startsWith('/')) {
         if (options.inputFileSystem) {
-            panic('使用虚拟文件系统时, 必须使用绝对路径.');
+            debug.panic('使用虚拟文件系统时, 必须使用绝对路径.');
         }
         options.inputDir = path.resolve(options.inputDir);
     }
     if (!options.outputDir.startsWith('/')) {
         if (options.outputFileSystem) {
-            panic('使用虚拟文件系统时, 必须使用绝对路径.');
+            debug.panic('使用虚拟文件系统时, 必须使用绝对路径.');
         }
         options.outputDir = path.resolve(options.outputDir);
     }

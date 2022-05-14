@@ -1,9 +1,8 @@
 import fs from 'fs-extra';
-import path from 'path';
-import { justlogDir } from './paths';
+import { packagePaths } from 'shared';
 import { JustlogSettings } from './types';
 
-const settingJsonPath = path.resolve(justlogDir, './settings/settings.json');
+const settingJsonPath = packagePaths.join.justlog('./settings/settings.json');
 let _settings = null as null | JustlogSettings;
 
 export function getSettings(): null | JustlogSettings {

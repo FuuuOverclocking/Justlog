@@ -1,7 +1,7 @@
 import { CompilerOptions } from './types';
-import { debug, DebugLevel } from './utils/debug';
+import debug, { DebugLevel } from './utils/debug';
 import { checkAndCompleteCompilerOptions, Rebuild } from './build-steps';
-import { timeout } from './utils/tools';
+import { timeout } from 'shared';
 
 /**
  * 监视给定博客文件夹, 持续编译到给定目标, 输出到文件系统, 或调用用户提供的 receiver.
