@@ -66,9 +66,9 @@ yarn unlink
 
 ## Docs of Packages
 
-- `justlog-cli`: [docs/JustMark.md](./docs/justlog-cli.md)
+- `justlog-cli`: [docs/justlog-cli.md](./docs/justlog-cli.md)
 - `justlog-proto`: -
-- `justlog-proto-backend`: 
+- `justlog-proto-backend`: -
 - `justmark`: [docs/JustMark.md](./docs/JustMark.md)
 
 ## License
