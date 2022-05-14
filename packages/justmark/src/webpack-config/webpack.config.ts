@@ -66,7 +66,7 @@ export function configFactory(options: {
                 {
                     loader: require.resolve('resolve-url-loader'),
                     options: {
-                        root: path.resolve(options.inputDir),
+                        root: options.inputDir,
                     },
                 },
                 {
@@ -174,7 +174,7 @@ export function configFactory(options: {
                         // The preset includes JSX, Flow, TypeScript, and some ESnext features.
                         {
                             test: /\.(js|jsx|ts|tsx)$/,
-                            include: path.resolve(options.inputDir),
+                            include: options.inputDir,
                             loader: require.resolve('babel-loader'),
                             options: {
                                 customize: require.resolve(
