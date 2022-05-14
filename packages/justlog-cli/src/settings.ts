@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import { packagePaths } from 'shared';
 import { JustlogSettings } from './types';
 
-const settingJsonPath = packagePaths.join.justlog('./settings/settings.json');
+const settingJsonPath = packagePaths.join.justlog('./data/settings.json');
 let _settings = null as null | JustlogSettings;
 
 export function getSettings(): null | JustlogSettings {

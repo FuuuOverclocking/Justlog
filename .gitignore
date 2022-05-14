@@ -1,7 +1,7 @@
 .vscode
 node_modules
 
-/settings
+/data
 /packages/*/build
 
 /packages/justmark/test/output

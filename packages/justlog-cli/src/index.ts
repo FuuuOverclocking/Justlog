@@ -16,7 +16,9 @@ program.name('justlog').version('0.1.0');
 program
     .command('new <blog-name>')
     .description(
-        `新建一篇名为 <blog-name> 的博客. 将在 ${settings.blogRootDir}/<blog-name> 下创建模板文件.`,
+        `新建一篇名为 <blog-name> 的博客. 将在 ${
+            settings.blogRootDir || '<blogRootDir>'
+        }/<blog-name> 下创建模板文件.`,
     )
     .action((blogName: string) => checkSettings() && newBlog(blogName));
 

@@ -40,7 +40,7 @@ export interface CompilerOptions {
     outputFileSystem?: FileSystem;
 
     /**
-     * silent = true 时, 禁止 JustMark 在 stdout.
+     * silent = true 时, 禁止 JustMark 输出日志.
      */
     silent?: boolean;
 }
