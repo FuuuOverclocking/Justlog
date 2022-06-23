@@ -2,11 +2,13 @@ import path from 'path';
 import fs from 'fs';
 import ts from 'typescript';
 import webpack from 'webpack';
+import shortUUID from 'short-uuid';
 import { MdCompiler } from './compiler/md-compiler';
 import { configFactory } from './webpack-config/webpack.config';
 import { format } from './utils/formatter';
-import debug from './utils/debug';
+import { log, assert, panic } from './utils/debug';
 import { CompilerOptions, FileSystem, Target } from './types';
+import { PathWithFs } from './utils/path-with-fs';
 
 type Source = 'article.md' | 'article.tsx';
 type BlogFilesPaths = Record<Source, string>;
@@ -17,29 +19,34 @@ type BuildStep = (
     next: () => Promise<void>,
 ) => Promise<void>;
 
+// Panic or Error:
+//   用户提供了错误的编译器选项时应当 panic, 立即中断程序并报错.
+//   但在编译过程中, 发生错误时, 应当 throw Error, 由外层决定 Error 的处理,
+//   例如, watch() 将容忍错误的发生, 等待直到源文件恢复正确.
+
 export async function checkAndCompleteCompilerOptions(
     options: CompilerOptions,
 ): Promise<void> {
-    debug.panicIf(typeof options.inputDir !== 'string', 'inputDir 不是字符串.');
-    debug.panicIf(typeof options.outputDir !== 'string', 'outputDir 不是字符串.');
-    debug.panicIf(
-        !Array.isArray(options.targets) || options.targets.length === 0,
+    assert(typeof options.inputDir === 'string', 'inputDir 应是字符串.');
+    assert(typeof options.outputDir === 'string', 'outputDir 应是字符串.');
+    assert(
+        Array.isArray(options.targets) && options.targets.length !== 0,
         '未指定 target.',
     );
-    debug.panicIf(
-        options.onBuildComplete != null && typeof options.onBuildComplete !== 'function',
+    assert(
+        options.onBuildComplete == null || typeof options.onBuildComplete === 'function',
         'onBuildComplete 应为 undefined | (() => Promise<void> | void).',
     );
 
     if (!options.inputDir.startsWith('/')) {
         if (options.inputFileSystem) {
-            debug.panic('使用虚拟文件系统时, 必须使用绝对路径.');
+            panic('使用虚拟文件系统时, 必须使用绝对路径.');
         }
         options.inputDir = path.resolve(options.inputDir);
     }
     if (!options.outputDir.startsWith('/')) {
         if (options.outputFileSystem) {
-            debug.panic('使用虚拟文件系统时, 必须使用绝对路径.');
+            panic('使用虚拟文件系统时, 必须使用绝对路径.');
         }
         options.outputDir = path.resolve(options.outputDir);
     }
@@ -55,7 +62,7 @@ export namespace Rebuild {
     export async function rebuild(options: RequiredCompilerOptions) {
         const timeBegin = Date.now();
 
-        await ensureIODir(options);
+        await Promise.all([ensureInputDir(options), cleanAndEnsureOutputDir(options)]);
 
         const paths: BlogFilesPaths = {
             'article.md': path.join(options.inputDir, './article.md'),
@@ -64,6 +71,7 @@ export namespace Rebuild {
 
         const sources = await readSources(paths, options.inputFileSystem);
 
+        // 解析编译目标, 按内在的顺序, 生成编译步骤.
         const buildSteps = resolveTargets(options.targets);
         if (buildSteps.length !== 0) {
             let i = -1;
@@ -79,67 +87,59 @@ export namespace Rebuild {
         }
 
         const buildTime = ((Date.now() - timeBegin) / 1000).toFixed(3);
-        debug.withTime.info(`编译完成, 用时 ${buildTime} 秒.`);
+        log.info(`编译完成, 用时 ${buildTime} 秒.`);
 
         if (options.onBuildComplete) {
             const timeBegin = Date.now();
-            debug.withTime.info(`执行 onBuildComplete...`);
+            log.info(`执行 onBuildComplete...`);
             await options.onBuildComplete();
             const runningTime = ((Date.now() - timeBegin) / 1000).toFixed(3);
-            debug.withTime.info(`执行 onBuildComplete 完成, 用时 ${runningTime} 秒.`);
+            log.info(`执行 onBuildComplete 完成, 用时 ${runningTime} 秒.`);
         }
     }
 
-    async function ensureIODir(options: RequiredCompilerOptions): Promise<void> {
-        await Promise.all([ensureInputDir(), cleanAndEnsureOutputDir()]);
+    async function ensureInputDir(options: RequiredCompilerOptions): Promise<void> {
+        try {
+            await options.inputFileSystem!.promises.mkdir(options.inputDir, {
+                recursive: true,
+            });
+        } catch (e) {
+            log.error(`无法访问 inputFileSystem 中的路径 "${options.inputDir}".`);
+            throw e;
+        }
+    }
 
-        async function ensureInputDir() {
-            try {
-                await options.inputFileSystem!.promises.mkdir(options.inputDir, {
-                    recursive: true,
-                });
-            } catch (e) {
-                debug.withTime.error(
-                    `无法访问 inputFileSystem 中的路径 "${options.inputDir}".`,
-                );
-                throw e;
-            }
+    async function cleanAndEnsureOutputDir(
+        options: RequiredCompilerOptions,
+    ): Promise<void> {
+        try {
+            await options.outputFileSystem.promises.rm(options.outputDir, {
+                recursive: true,
+                force: true,
+            });
+        } catch (e) {
+            log.error(`无法删除 outputFileSystem 中的输出文件夹 "${options.outputDir}".`);
+            throw e;
         }
 
-        async function cleanAndEnsureOutputDir() {
-            try {
-                await options.outputFileSystem.promises.rm(options.outputDir, {
-                    recursive: true,
-                    force: true,
-                });
-            } catch (e) {
-                debug.withTime.error(
-                    `无法删除 outputFileSystem 中的输出文件夹 "${options.outputDir}".`,
-                );
-                throw e;
-            }
-
-            try {
-                options.outputFileSystem!.promises.mkdir(options.outputDir, {
-                    recursive: true,
-                });
-            } catch (e) {
-                debug.withTime.error(
-                    `无法访问 outputFileSystem 中的路径 "${options.outputDir}".`,
-                );
-                throw e;
-            }
+        try {
+            options.outputFileSystem!.promises.mkdir(options.outputDir, {
+                recursive: true,
+            });
+        } catch (e) {
+            log.error(`无法访问 outputFileSystem 中的路径 "${options.outputDir}".`);
+            throw e;
         }
     }
 
     async function readSources(paths: BlogFilesPaths, inputFS: FileSystem) {
         const tmp = await Promise.all([
             inputFS.promises.readFile(paths['article.md'], 'utf-8').catch((e) => {
-                debug.withTime.error(`无法读取 "${paths['article.md']}".`);
+                log.error(`无法读取 "${paths['article.md']}".`);
                 throw e;
             }),
             inputFS.promises.readFile(paths['article.tsx'], 'utf-8').catch((e) => {
-                debug.withTime.error(`无法读取 "${paths['article.tsx']}".`);
+                log.error(`无法读取 "${paths['article.tsx']}".`);
                 throw e;
             }),
         ]);
@@ -176,21 +176,24 @@ export namespace Rebuild {
 
 namespace CompileMarkdownAndMix {
     export const step: BuildStep = async (sources, options, next) => {
+        const outputDir = new PathWithFs(options.outputFileSystem, options.outputDir);
+        const targetPath = outputDir.join('blog.tsx');
+
         const mdCompiler = MdCompiler.getInstance(options);
         const blogObjectString = mdCompiler.compileMarkdown(sources['article.md']);
         const code = mixBlogIntoTsx(sources['article.tsx'], blogObjectString);
 
-        await FSTools.OutputDir.writeFile(options, './blog.tsx', code);
+        await targetPath.write(code);
         await next();
 
         if (options.targets.includes('blog.tsx')) {
             const { err, result: codeFormatted } = await format(code);
             if (err) {
-                debug.withTime.error(err);
+                log.error(err);
             }
-            await FSTools.OutputDir.writeFile(options, './blog.tsx', codeFormatted);
+            await targetPath.write(codeFormatted);
         } else {
-            await FSTools.OutputDir.unlink(options, './blog.tsx');
+            await targetPath.remove();
         }
     };
 
@@ -211,7 +214,10 @@ namespace CompileMarkdownAndMix {
 
 namespace CompileTsxAndPack {
     export const step: BuildStep = async (sources, options, next) => {
-        const codeInput = await FSTools.OutputDir.readFile(options, './blog.tsx');
+        const inputDir = new PathWithFs(options.inputFileSystem, options.inputDir);
+        const outputDir = new PathWithFs(options.outputFileSystem, options.outputDir);
+
+        const codeInput = await outputDir.join('blog.tsx').read();
 
         const sourceFile = ts.createSourceFile(
             'blog.tsx',
@@ -227,30 +233,26 @@ namespace CompileTsxAndPack {
         );
 
         // 在 inputDir 下创建一个临时文件, 作为 webpack 的入口
-        // prettier-ignore
-        const randomString = Math.floor(
-            Math.random() * Number.MAX_SAFE_INTEGER
-        ).toString(36);
-        const tmpFilePath = `./.tmp.${randomString}.tsx`;
+        const tmpFilePath = inputDir.join(`.tmp.${shortUUID.generate()}.tsx`);
 
-        await FSTools.InputDir.writeFile(options, tmpFilePath, codeImportTranspiled);
+        await tmpFilePath.write(codeImportTranspiled);
         try {
             await pack();
         } finally {
-            await FSTools.InputDir.unlink(options, tmpFilePath);
+            await tmpFilePath.remove();
         }
 
         const info = {
-            needModule: importDeclToTranspile.map(decl => decl.moduleRealName),
+            needModule: importDeclToTranspile.map((decl) => decl.moduleRealName),
         };
-        FSTools.OutputDir.writeFile(options, './blog-bundle/info.json', JSON.stringify(info));
+        outputDir.join('blog-bundle/info.json', JSON.stringify(info));
 
         await next();
 
         async function pack() {
             const compiler = webpack(
                 configFactory({
-                    entry: path.join(options.inputDir, tmpFilePath),
+                    entry: tmpFilePath.str,
                     inputDir: options.inputDir,
                     outputDir: path.join(options.outputDir, './blog-bundle'),
                 }),
@@ -358,50 +360,4 @@ namespace ConvertToZhihu {
     export const step: BuildStep = async (sources, options, next) => {
         await next();
     };
-}
-
-namespace FSTools {
-    class IODir {
-        constructor(private isInput: boolean) {}
-        private fs(options: RequiredCompilerOptions) {
-            return this.isInput
-                ? options.inputFileSystem.promises
-                : options.outputFileSystem.promises;
-        }
-        private join(options: RequiredCompilerOptions, relativePath: string) {
-            return path.join(
-                this.isInput ? options.inputDir : options.outputDir,
-                relativePath,
-            );
-        }
-
-        public readFile(
-            options: RequiredCompilerOptions,
-            relativePath: string,
-        ): Promise<string> {
-            return this.fs(options).readFile(this.join(options, relativePath), {
-                encoding: 'utf-8',
-            }) as Promise<string>;
-        }
-
-        public writeFile(
-            options: RequiredCompilerOptions,
-            relativePath: string,
-            code: string,
-        ): Promise<void> {
-            return this.fs(options).writeFile(this.join(options, relativePath), code, {
-                encoding: 'utf-8',
-            });
-        }
-
-        public unlink(
-            options: RequiredCompilerOptions,
-            relativePath: string,
-        ): Promise<void> {
-            return this.fs(options).unlink(this.join(options, relativePath));
-        }
-    }
-
-    export const InputDir = new IODir(true);
-    export const OutputDir = new IODir(false);
 }

@@ -1,10 +1,7 @@
 #!/usr/bin/env node
 
 import { program } from 'commander';
-import { getSettings, settings } from './settings';
-import debug from './utils/debug';
-import chalk from 'chalk';
-
+import { checkSettings, settings } from './settings';
 import { newBlog } from './actions/new-blog';
 import { buildBlog } from './actions/build-blog';
 import { viewBlog } from './actions/view-blog';
@@ -16,42 +13,36 @@ program.name('justlog').version('0.1.0');
 program
     .command('new <blog-name>')
     .description(
-        `新建一篇名为 <blog-name> 的博客. 将在 ${
-            settings.blogRootDir || '<blogRootDir>'
-        }/<blog-name> 下创建模板文件.`,
+        '新建一篇名为 <blog-name> 的博客. ' +
+            (settings().blogRootDir
+                ? `将在 ${settings().blogRootDir}/<blog-name> 下创建模板文件.`
+                : `将在 <settings.blogRootDir>/<blog-name> 下创建模板文件.`),
     )
-    .action((blogName: string) => checkSettings() && newBlog(blogName));
+    .action((blogName: string) => newBlog(blogName));
 
 program
     .command('build')
     .description(`构建博客.`)
-    .action(() => checkSettings() && buildBlog());
+    .action(() => buildBlog());
 
 program
     .command('view')
     .description(`实时预览博客.`)
-    .action(() => checkSettings() && viewBlog());
+    .action(() => viewBlog());
 
 program
     .command('publish')
     .description(`发布博客.`)
-    .action(() => checkSettings() && publishBlog());
+    .action(() => publishBlog());
 
 program
     .command('set <key> <value>')
     .description(`更改 justlog 的设置.`)
     .action((key: string, value: string) => modifySettings(key, value));
 
-program.parse();
-
-function checkSettings(): true {
-    if (getSettings()) return true;
-
-    // prettier-ignore
-    debug.panic(
-        `需先设置 博客根文件夹 以继续. 运行 ${
-            chalk.bgBlue.white('justlog set blogRootDir "X:/path/to/blogs"')
-        } 以设置.`,
-    );
-    return true; // 这条语句不可达, 但因为 tsc 是个蠢货
+const checkResult = checkSettings();
+if (checkResult.problems.length) {
+    program.addHelpText('after', '\n\n' + checkResult.summary());
 }
+
+program.parse();

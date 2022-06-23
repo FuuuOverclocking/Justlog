@@ -1,34 +1,34 @@
-import readline from 'readline';
-import { spawnSync } from 'child_process';
 import path from 'path';
 import fs from 'fs-extra';
-import { v4 as uuidv4 } from 'uuid';
+import shortUUID from 'short-uuid';
 import { settings } from '../settings';
-import debug from '../utils/debug';
 import chalk from 'chalk';
-import { packagePaths, pathBackslashToSlash } from 'shared';
+import { Path, Paths } from 'shared/utils-nodejs';
+import { log, panic } from '../utils/debug';
+import readline from 'readline';
+import { spawnSync } from 'child_process';
 
 export function newBlog(name: string): void {
     try {
-        const blogDir = pathBackslashToSlash(path.resolve(settings.blogRootDir, name));
+        const blogDir = new Path(settings().blogRootDir).join(name).str;
         check(name, blogDir);
 
         const files = {
             'article.tsx': fs.readFileSync(
-                packagePaths.join.justlog('./resources/template/article.tsx.template'),
+                Paths.resources.join('template/article.tsx.template').str,
                 'utf-8',
             ),
             'article.md': fs.readFileSync(
-                packagePaths.join.justlog('./resources/template/article.md.template'),
+                Paths.resources.join('template/article.md.template').str,
                 'utf-8',
             ),
         };
 
         files['article.tsx'] = files['article.tsx'].replace(
             /%JUSTLOG_DIR%/g,
-            packagePaths.justlog,
+            Paths.root.str,
         );
-        files['article.md'] = files['article.md'].replace(/%BLOG_UUID%/g, uuidv4());
+        files['article.md'] = files['article.md'].replace(/%BLOG_UUID%/g, shortUUID.generate());
 
         fs.writeFileSync(
             path.resolve(blogDir, './article.tsx'),
@@ -41,12 +41,10 @@ export function newBlog(name: string): void {
             'utf-8',
         );
 
-        debug.info(`已在目录 ${blogDir} 下创建博客模板.`);
-        debug.info(`按下按键:`);
-        debug.info(
-            `    [${chalk.underline(' Enter ')}]     = 用 VS Code 打开`,
-        );
-        debug.info(`    [${chalk.underline(' Any other ')}] = 退出`);
+        log.info(`已在目录 ${blogDir} 下创建博客模板.`);
+        log.info(`按下按键:`);
+        log.info(`    [${chalk.underline(' Enter ')}]     = 用 VS Code 打开`);
+        log.info(`    [${chalk.underline(' Any other ')}] = 退出`);
 
         readline.emitKeypressEvents(process.stdin);
         if (process.stdin.isTTY) process.stdin.setRawMode(true);
@@ -56,7 +54,7 @@ export function newBlog(name: string): void {
             process.exit(0);
         });
     } catch (e) {
-        debug.panic(`未能在 ${settings.blogRootDir} 下创建博客 ${name}.`);
+        panic(`未能在 ${settings().blogRootDir} 下创建博客 ${name}.`);
     }
 }
 
@@ -66,7 +64,7 @@ function check(name: string, blogDir: string): void {
         name.length > 255 ||
         !/^[-_0-9a-zA-Z\.]+$/.test(name)
     ) {
-        debug.panic(`${name} 不是合法的文件名.`);
+        panic(`${name} 不是合法的文件名.`);
     }
     if (
         name === '.justlog' ||
@@ -74,11 +72,11 @@ function check(name: string, blogDir: string): void {
         /^\d{4}\.\d{1,2}$/.test(name) ||
         /^\d{4}\.\d{1,2}\.\d{1,2}$/.test(name)
     ) {
-        debug.panic(`${name} 不是合法的博客名.`);
+        panic(`${name} 不是合法的博客名.`);
     }
 
     fs.ensureDirSync(blogDir);
     if (fs.readdirSync(blogDir).length !== 0) {
-        debug.panic(`目录 ${blogDir} 非空, 创建失败`);
+        panic(`目录 ${blogDir} 非空, 创建失败`);
     }
 }

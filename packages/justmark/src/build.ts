@@ -1,5 +1,5 @@
 import { CompilerOptions } from './types';
-import debug, { DebugLevel } from './utils/debug';
+import { log, LogLevel } from './utils/debug';
 import { checkAndCompleteCompilerOptions, Rebuild } from './build-steps';
 
 /**
@@ -9,14 +9,14 @@ import { checkAndCompleteCompilerOptions, Rebuild } from './build-steps';
  * @returns 编译完成时, Promise resolve(void); 发生错误时, reject(err).
  */
 export async function build(options: CompilerOptions): Promise<void> {
-    if (options.silent) debug.setDebugLevel(DebugLevel.None);
+    if (options.silent) log.setLogLevel(LogLevel.None);
 
     await checkAndCompleteCompilerOptions(options);
 
     try {
         await Rebuild.rebuild(options as Required<CompilerOptions>);
     } catch (e) {
-        debug.withTime.error(e instanceof Error ? e.message : String(e));
+        log.error(e instanceof Error ? e.message : String(e));
         throw e;
     }
 }

@@ -12,12 +12,12 @@
         "koa": "^2.13.4",
         "koa-static": "^5.0.0",
         "utf-8-validate": "^5.0.9",
-        "ws": "^8.6.0"
+        "ws": "^8.8.0"
     },
     "devDependencies": {
         "@types/fs-extra": "^9.0.13",
         "@types/koa": "^2.13.4",
         "@types/koa-static": "^4.0.2",
-        "typescript": "^4.6.4"
+        "typescript": "^4.7.4"
     }
 }

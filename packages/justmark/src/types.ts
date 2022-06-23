@@ -1,4 +1,4 @@
-import { Blog, BlogMeta } from 'shared';
+import { Blog, BlogMeta } from 'shared/types';
 import fs from 'fs';
 import fsExtra from 'fs-extra';
 import { IFs } from 'memfs';

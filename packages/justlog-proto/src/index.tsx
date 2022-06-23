@@ -4,7 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import * as HotReload from './hot-reload';
-import { newPromise } from 'shared/build/tools';
+import { $Promise } from 'shared/utils';
 import 'katex/dist/katex.min.css';
 
 main();
@@ -22,12 +22,12 @@ async function main() {
         );
     });
 
-    const blog = await blogLoaded.pm;
+    const blog = await blogLoaded;
     app.installBlog(blog);
 }
 
 function startBlogEnv() {
-    const blogLoaded = newPromise<Blog>();
+    const blogLoaded = $Promise<Blog>();
 
     globalThis.giveme = (id: string) => {
         switch (id) {

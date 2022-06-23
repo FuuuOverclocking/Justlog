@@ -1,7 +1,7 @@
 import { CompilerOptions } from './types';
-import debug, { DebugLevel } from './utils/debug';
 import { checkAndCompleteCompilerOptions, Rebuild } from './build-steps';
 import { timeout } from 'shared';
+import { log, LogLevel } from './utils/debug';
 
 /**
  * 监视给定博客文件夹, 持续编译到给定目标, 输出到文件系统. 可使用虚拟文件系统.
@@ -15,7 +15,7 @@ import { timeout } from 'shared';
 export async function watch(
     options: CompilerOptions,
 ): Promise<{ stopWatch: () => void }> {
-    if (options.silent) debug.setDebugLevel(DebugLevel.None);
+    if (options.silent) log.setLogLevel(LogLevel.None);
 
     await checkAndCompleteCompilerOptions(options);
 
@@ -30,7 +30,7 @@ export async function watch(
     let state: 'init' | 'cast' | 'cd' = 'init';
     let shouldBuildAgain = false;
 
-    const onSourcesChange = (event?: 'rename' | 'change', filename?: string) => {
+    const onSourcesChange = async (event?: 'rename' | 'change', filename?: string) => {
         // 忽略隐藏文件的改变
         if (filename && filename.startsWith('.')) return;
 
@@ -40,20 +40,21 @@ export async function watch(
             return;
         }
         shouldBuildAgain = false;
-        debug.withTime.info(`文件发生变化, 正在编译...`);
-        useSkill();
-    };
+        log.info(`文件发生变化, 正在编译...`);
 
-    const useSkill = async () => {
+        // 施法前摇...
         state = 'cast';
-
         await timeout(100);
 
+        // 施法!
+        await cast();
+    };
+
+    // 无前摇施法
+    const cast = async () => {
         state = 'cd';
         startBuilding();
-
         await timeout(900);
-
         state = 'init';
         if (shouldBuildAgain) onSourcesChange();
     };
@@ -64,9 +65,9 @@ export async function watch(
         try {
             await Rebuild.rebuild(options as Required<CompilerOptions>);
         } catch (e) {
-            debug.withTime.error(e instanceof Error ? e.message : String(e));
+            log.error(e instanceof Error ? e.message : String(e));
         } finally {
-            debug.raw.info(); // 打印换行符, 分隔前后行
+            console.log(); // 打印换行符, 分隔前后行
             isBuilding = false;
             if (shouldBuildAgain) onSourcesChange();
         }
@@ -82,9 +83,8 @@ export async function watch(
         onSourcesChange,
     );
 
-    debug.withTime.info('在监视模式下开始编译...');
-    useSkill();
-
+    log.info('在监视模式下开始编译...');
+    cast(); // 施法, 但是不等待, 直接返回
     return {
         stopWatch(): void {
             watcher.close();

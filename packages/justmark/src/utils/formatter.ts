@@ -1,9 +1,7 @@
 import prettier from 'prettier';
-import { packagePaths } from 'shared';
+import { Paths } from 'shared/utils-nodejs';
 
-const prettierrcPromise = prettier.resolveConfig(
-    packagePaths.join.justlog('./.prettierrc.toml'),
-);
+const prettierrcPromise = prettier.resolveConfig(Paths.root.join('.prettierrc.toml').str);
 
 export async function format(source: string): Promise<{
     err: null | string;

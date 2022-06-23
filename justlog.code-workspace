@@ -25,5 +25,7 @@
             "path": "packages\\shared"
         }
     ],
-    "settings": {}
+    "settings": {
+        "typescript.tsdk": "✨ justlog\\node_modules\\typescript\\lib"
+    }
 }
