@@ -4,7 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import * as HotReload from './hot-reload';
-import { $Promise } from 'shared/utils';
+import { $Promise } from 'shared/build/utils';
 import 'katex/dist/katex.min.css';
 
 main();

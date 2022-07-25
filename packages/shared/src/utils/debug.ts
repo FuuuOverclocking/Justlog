@@ -45,7 +45,7 @@ export class Log {
         this.logLevel = level;
     }
 
-    private log(level: LogLevel, msg: string): void {
+    private log(level: LogLevel, msg?: string): void {
         if (level < this.logLevel) return;
 
         let str = this._withTime
@@ -71,13 +71,13 @@ export class Log {
         console.log(str);
     }
 
-    public info(msg: string): void {
+    public info(msg?: string): void {
         this.log(LogLevel.Info, msg);
     }
-    public warn(msg: string): void {
+    public warn(msg?: string): void {
         this.log(LogLevel.Warn, msg);
     }
-    public error(msg: string): void {
+    public error(msg?: string): void {
         this.log(LogLevel.Error, msg);
     }
 

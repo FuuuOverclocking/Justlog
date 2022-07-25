@@ -3,11 +3,11 @@ import serve from 'koa-static';
 import ws from 'ws';
 import fs from 'fs-extra';
 import * as justmark from 'justmark';
-import { Paths } from 'shared/utils-nodejs';
+import { Paths } from 'shared/build/utils-nodejs';
 
 const app = new Koa();
 
-app.use(serve(Paths.packages.justlogProto.join('./build').str, {}));
+app.use(serve(Paths.packages.justlogProto.join('./build').raw, {}));
 
 const server = app.listen(80);
 const wss = new ws.Server({ server, clientTracking: true });
@@ -27,10 +27,10 @@ justmark.watch({
     outputDir: './output',
     targets: ['blog-bundle'],
     onBuildComplete() {
-        fs.copySync(
-            Paths.packages.justlogProtoBackend.join('output/blog-bundle').str,
-            Paths.packages.justlogProto.join('build').str,
-        );
+        const pathBlogBundle = Paths.packages.justlogProtoBackend.join('output/blog-bundle');
+        const pathBuild = Paths.packages.justlogProto.join('build');
+        pathBlogBundle.copySync(pathBuild);
+
         wss.clients.forEach((ws) => {
             ws.send(
                 JSON.stringify({

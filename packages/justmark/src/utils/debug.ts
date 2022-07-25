@@ -1,8 +1,8 @@
-import { Log, assertFactory, LogLevel } from 'shared/utils';
+import { Log, assertFactory, LogLevel } from 'shared';
 export { LogLevel };
 
 export const log = new Log({
-    moduleName: 'justlog-cli',
+    moduleName: 'justmark',
     logLevel: LogLevel.Info,
     withModuleName: true,
     withTime: true,

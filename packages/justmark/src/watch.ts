@@ -1,7 +1,8 @@
-import { CompilerOptions } from './types';
-import { checkAndCompleteCompilerOptions, Rebuild } from './build-steps';
+import fs from 'fs';
+import { JustMarkOptions } from './types';
 import { timeout } from 'shared';
 import { log, LogLevel } from './utils/debug';
+import { checkAndGetCompilerOptions, compile } from './compiler/compile';
 
 /**
  * 监视给定博客文件夹, 持续编译到给定目标, 输出到文件系统. 可使用虚拟文件系统.
@@ -13,11 +14,11 @@ import { log, LogLevel } from './utils/debug';
  *          调用 stopWatch 可停止监视.
  */
 export async function watch(
-    options: CompilerOptions,
+    options: JustMarkOptions,
 ): Promise<{ stopWatch: () => void }> {
     if (options.silent) log.setLogLevel(LogLevel.None);
 
-    await checkAndCompleteCompilerOptions(options);
+    const opts = checkAndGetCompilerOptions(options);
 
     // rebuild 执行的规则:
     // 1. 完成了一次 rebuild 后, 才能进行下次 rebuild
@@ -42,19 +43,20 @@ export async function watch(
         shouldBuildAgain = false;
         log.info(`文件发生变化, 正在编译...`);
 
+        await useSkill();
+    };
+
+    const useSkill = async () => {
         // 施法前摇...
         state = 'cast';
         await timeout(100);
 
-        // 施法!
-        await cast();
-    };
-
-    // 无前摇施法
-    const cast = async () => {
+        // 施法...
         state = 'cd';
-        startBuilding();
+        void startBuilding();
         await timeout(900);
+
+        // 施法完成
         state = 'init';
         if (shouldBuildAgain) onSourcesChange();
     };
@@ -63,9 +65,14 @@ export async function watch(
         isBuilding = true;
 
         try {
-            await Rebuild.rebuild(options as Required<CompilerOptions>);
+            await compile(opts);
         } catch (e) {
-            log.error(e instanceof Error ? e.message : String(e));
+            if (e instanceof Error) {
+                log.error(e.message);
+                log.error(e.stack);
+            } else {
+                log.error(String(e));
+            }
         } finally {
             console.log(); // 打印换行符, 分隔前后行
             isBuilding = false;
@@ -73,18 +80,14 @@ export async function watch(
         }
     };
 
-    const watcher = (options.inputFileSystem! as any).watch(
-        options.inputDir,
-        {
-            persistent: true,
-            recursive: true,
-            encoding: 'utf-8',
-        },
-        onSourcesChange,
-    );
+    const watcher = opts.inputDir.watch({
+        persistent: true,
+        recursive: true,
+        encoding: 'utf-8',
+    }, onSourcesChange);
 
     log.info('在监视模式下开始编译...');
-    cast(); // 施法, 但是不等待, 直接返回
+    useSkill(); // 施法, 但是不等待, 直接返回
     return {
         stopWatch(): void {
             watcher.close();

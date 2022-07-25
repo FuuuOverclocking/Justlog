@@ -1,10 +1,9 @@
-import fs from 'fs-extra';
 import chalk from 'chalk';
-import { Paths } from 'shared/utils-nodejs';
+import { Paths } from 'shared/build/utils-nodejs';
 import { JustlogSettings } from './types';
-import { log, panic } from './utils/debug';
+import { panic } from './utils/debug';
 
-const settingsPath = Paths.data.join('settings.json').str;
+const settingsPath = Paths.data.join('settings.json');
 
 let _settings = null as null | JustlogSettings;
 
@@ -17,17 +16,16 @@ export function settings(): JustlogSettings {
     if (_settings) return _settings;
 
     try {
-        _settings = fs.readJSONSync(settingsPath);
+        _settings = settingsPath.readJSONSync();
         return _settings!;
     } catch (e) {
         try {
             _settings = generateDefaultSettings();
-            fs.writeJSONSync(settingsPath, _settings, {
-                spaces: 4,
-            });
+            settingsPath.ensureFileSync();
+            settingsPath.writeJSONSync(_settings);
             return _settings;
         } catch (e) {
-            return panic(`无法向 ${settingsPath} 写入设置.`);
+            return panic(`无法向 ${settingsPath.raw} 写入设置.`);
         }
     }
 }
@@ -40,9 +38,7 @@ function generateDefaultSettings(): JustlogSettings {
 
 export function updateSettings(fn: (s: JustlogSettings) => void): void {
     fn(settings());
-    fs.writeJSONSync(settingsPath, settings(), {
-        spaces: 4,
-    });
+    settingsPath.writeJSONSync(settings());
 }
 
 export function checkSettings(): {

@@ -1,13 +1,16 @@
-import { Blog, BlogMeta } from 'shared/types';
+import { Blog, BlogMeta } from 'shared';
 import fs from 'fs';
-import fsExtra from 'fs-extra';
-import { IFs } from 'memfs';
+import { IFs as memfs } from 'memfs';
+import { PathNice } from 'path-nice';
 
 export { Blog, BlogMeta };
 
-export type Target = 'blog.tsx' | 'blog-bundle' | 'zhihu.md';
+export type FileSystem = typeof fs | memfs;
 
-export interface CompilerOptions {
+export const allowedTargets = ['blog-bundle', 'zhihu.md'] as const;
+export type Target = typeof allowedTargets[number];
+
+export interface JustMarkOptions {
     /**
      * 输入文件夹路径. 可设置 inputFileSystem 以使用虚拟文件系统.
      */
@@ -45,4 +48,9 @@ export interface CompilerOptions {
     silent?: boolean;
 }
 
-export type FileSystem = typeof fs | typeof fsExtra | IFs;
+export interface CompilerOptions {
+    inputDir: PathNice;
+    outputDir: PathNice;
+    targets: Set<Target>;
+    onBuildComplete: null | (() => Promise<void> | void);
+}

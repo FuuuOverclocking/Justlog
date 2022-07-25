@@ -1,4 +1,4 @@
-import { Log, assertFactory, LogLevel } from 'shared/utils';
+import { Log, assertFactory, LogLevel } from 'shared';
 
 export const log = new Log({
     moduleName: 'justlog-cli',

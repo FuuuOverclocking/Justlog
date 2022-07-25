@@ -1,6 +1,6 @@
-import { CompilerOptions } from './types';
+import { checkAndGetCompilerOptions, compile } from './compiler/compile';
+import { JustMarkOptions } from './types';
 import { log, LogLevel } from './utils/debug';
-import { checkAndCompleteCompilerOptions, Rebuild } from './build-steps';
 
 /**
  * 给定博客文件夹, 编译到给定目标, 输出到文件系统. 可使用虚拟文件系统.
@@ -8,15 +8,21 @@ import { checkAndCompleteCompilerOptions, Rebuild } from './build-steps';
  * @param options 编译选项
  * @returns 编译完成时, Promise resolve(void); 发生错误时, reject(err).
  */
-export async function build(options: CompilerOptions): Promise<void> {
+export async function build(options: JustMarkOptions): Promise<void> {
     if (options.silent) log.setLogLevel(LogLevel.None);
 
-    await checkAndCompleteCompilerOptions(options);
+    const opts = checkAndGetCompilerOptions(options);
 
     try {
-        await Rebuild.rebuild(options as Required<CompilerOptions>);
+        await compile(opts);
     } catch (e) {
-        log.error(e instanceof Error ? e.message : String(e));
+        if (e instanceof Error) {
+            log.error(e.message);
+            log.error(e.stack);
+        } else {
+            log.error(String(e));
+        }
+
         throw e;
     }
 }

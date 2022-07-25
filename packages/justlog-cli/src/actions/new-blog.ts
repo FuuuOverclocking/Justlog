@@ -1,47 +1,39 @@
-import path from 'path';
-import fs from 'fs-extra';
 import shortUUID from 'short-uuid';
 import { settings } from '../settings';
 import chalk from 'chalk';
-import { Path, Paths } from 'shared/utils-nodejs';
+import { Paths } from 'shared/build/utils-nodejs';
 import { log, panic } from '../utils/debug';
 import readline from 'readline';
 import { spawnSync } from 'child_process';
+import path, { PathNice } from 'path-nice';
 
 export function newBlog(name: string): void {
     try {
-        const blogDir = new Path(settings().blogRootDir).join(name).str;
-        check(name, blogDir);
+        const blogDirPath = path(settings().blogRootDir).join(name);
+        check(name, blogDirPath);
 
         const files = {
-            'article.tsx': fs.readFileSync(
-                Paths.resources.join('template/article.tsx.template').str,
-                'utf-8',
-            ),
-            'article.md': fs.readFileSync(
-                Paths.resources.join('template/article.md.template').str,
-                'utf-8',
-            ),
+            'article.tsx': Paths.resources
+                .join('template/article.tsx.template')
+                .readFileToStringSync(),
+            'article.md': Paths.resources
+                .join('template/article.md.template')
+                .readFileToStringSync(),
         };
 
         files['article.tsx'] = files['article.tsx'].replace(
             /%JUSTLOG_DIR%/g,
-            Paths.root.str,
+            Paths.root.raw,
         );
-        files['article.md'] = files['article.md'].replace(/%BLOG_UUID%/g, shortUUID.generate());
-
-        fs.writeFileSync(
-            path.resolve(blogDir, './article.tsx'),
-            files['article.tsx'],
-            'utf-8',
-        );
-        fs.writeFileSync(
-            path.resolve(blogDir, './article.md'),
-            files['article.md'],
-            'utf-8',
+        files['article.md'] = files['article.md'].replace(
+            /%BLOG_UUID%/g,
+            shortUUID.generate(),
         );
 
-        log.info(`已在目录 ${blogDir} 下创建博客模板.`);
+        blogDirPath.join('article.tsx').writeFileSync(files['article.tsx']);
+        blogDirPath.join('article.md').writeFileSync(files['article.md']);
+
+        log.info(`已在目录 ${blogDirPath} 下创建博客模板.`);
         log.info(`按下按键:`);
         log.info(`    [${chalk.underline(' Enter ')}]     = 用 VS Code 打开`);
         log.info(`    [${chalk.underline(' Any other ')}] = 退出`);
@@ -50,7 +42,7 @@ export function newBlog(name: string): void {
         if (process.stdin.isTTY) process.stdin.setRawMode(true);
         process.stdin.on('keypress', (str, key) => {
             if (key.name !== 'return') process.exit(0);
-            spawnSync('code', [blogDir], { shell: true });
+            spawnSync('code', [blogDirPath.raw], { shell: true });
             process.exit(0);
         });
     } catch (e) {
@@ -58,7 +50,7 @@ export function newBlog(name: string): void {
     }
 }
 
-function check(name: string, blogDir: string): void {
+function check(name: string, blogDir: PathNice): void {
     if (
         typeof name !== 'string' ||
         name.length > 255 ||
@@ -75,8 +67,8 @@ function check(name: string, blogDir: string): void {
         panic(`${name} 不是合法的博客名.`);
     }
 
-    fs.ensureDirSync(blogDir);
-    if (fs.readdirSync(blogDir).length !== 0) {
+    blogDir.ensureDirSync();
+    if (!blogDir.isEmptyDirSync()) {
         panic(`目录 ${blogDir} 非空, 创建失败`);
     }
 }

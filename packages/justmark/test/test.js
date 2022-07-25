@@ -2,12 +2,12 @@ const justmark = require('../build/index');
 
 // justmark.build({
 //     inputDir: './test/input',
-//     targets: ['blog.tsx', 'blog-bundle', 'zhihu.md'],
+//     targets: ['blog-bundle', 'zhihu.md'],
 //     outputDir: './test/output',
 // });
 
 justmark.watch({
     inputDir: './test/input',
-    targets: ['blog-bundle', 'blog.tsx'],
+    targets: ['blog-bundle'],
     outputDir: './test/output',
 });

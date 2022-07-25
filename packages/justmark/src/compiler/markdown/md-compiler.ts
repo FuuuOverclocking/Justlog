@@ -1,7 +1,7 @@
 import MarkdownIt from 'markdown-it';
 import HTMLtoJSX from 'htmltojsx';
 import * as cheerio from 'cheerio';
-import { CompilerOptions } from '../types';
+import { CompilerOptions } from '../../types';
 import { justmarkPlugin } from './markdown-it-justmark';
 import { RenderInfo } from './compiler-types';
 

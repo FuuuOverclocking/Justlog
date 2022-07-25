@@ -1,7 +1,9 @@
 import prettier from 'prettier';
-import { Paths } from 'shared/utils-nodejs';
+import path from 'path-nice';
 
-const prettierrcPromise = prettier.resolveConfig(Paths.root.join('.prettierrc.toml').str);
+const prettierrcPromise = prettier.resolveConfig(
+    path.join(__dirname, 'formatter.config.toml'),
+);
 
 export async function format(source: string): Promise<{
     err: null | string;
