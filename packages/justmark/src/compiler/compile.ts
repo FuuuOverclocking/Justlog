@@ -3,7 +3,7 @@ import shortUUID from 'short-uuid';
 import webpack from 'webpack';
 import path from 'path-nice';
 import { JustMarkOptions, CompilerOptions, allowedTargets } from '../types';
-import { log, assert, panic } from '../utils/debug';
+import { log, assert } from '../utils/debug';
 import { MdCompiler } from './markdown/md-compiler';
 import { configFactory } from './webpack.config';
 
@@ -75,6 +75,17 @@ export async function compile(opts: CompilerOptions): Promise<void> {
 }
 
 namespace TargetBlogBundle {
+    const webpackConfig = (() => {
+        let cache = void 0 as any;
+        return (opts: CompilerOptions) => {
+            cache ??= configFactory({
+                inputDir: opts.inputDir.raw,
+                outputDir: opts.outputDir.join('./blog-bundle').raw,
+            });
+            return cache as webpack.Configuration;
+        };
+    })();
+
     export async function compile(
         inputs: {
             'article.md': string;
@@ -112,13 +123,9 @@ namespace TargetBlogBundle {
         }
 
         async function pack() {
-            const compiler = webpack(
-                configFactory({
-                    entry: tmpFile.raw,
-                    inputDir: opts.inputDir.raw,
-                    outputDir: opts.outputDir.join('./blog-bundle').raw,
-                }),
-            );
+            const config = webpackConfig(opts);
+            config.entry = tmpFile.raw;
+            const compiler = webpack(config);
             compiler.inputFileSystem = opts.inputDir.fs;
             compiler.outputFileSystem = opts.outputDir.fs;
 
@@ -144,7 +151,7 @@ namespace TargetBlogBundle {
 
         return tsx;
     }
-    
+
     function findImportDeclToTranspile(sourceFile: ts.SourceFile): Array<{
         name: string;
         moduleName: string;

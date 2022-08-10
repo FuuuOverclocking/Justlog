@@ -21,8 +21,7 @@ export function settings(): JustlogSettings {
     } catch (e) {
         try {
             _settings = generateDefaultSettings();
-            settingsPath.ensureFileSync();
-            settingsPath.writeJSONSync(_settings);
+            settingsPath.outputJSONSync(_settings);
             return _settings;
         } catch (e) {
             return panic(`无法向 ${settingsPath.raw} 写入设置.`);

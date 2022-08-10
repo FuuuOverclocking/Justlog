@@ -15,10 +15,9 @@ declare global {
      */
     function giveme(id: string): any;
 
-    /**
-     * 登记一个 Blog 对象.
-     */
-    function registerBlog(blog: Blog): void;
+    interface Window {
+        blogs: Blog[];
+    }
 
     namespace JSX {
         interface IntrinsicElements {

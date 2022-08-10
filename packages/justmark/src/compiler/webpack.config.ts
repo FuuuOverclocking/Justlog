@@ -12,7 +12,6 @@ const isDev = false;
 process.env.NODE_ENV = isDev ? 'development' : 'production';
 
 export function configFactory(options: {
-    entry: string;
     inputDir: string;
     outputDir: string;
 }): webpack.Configuration {
@@ -83,7 +82,6 @@ export function configFactory(options: {
         mode: isDev ? 'development' : 'production',
         bail: !isDev,
         devtool: false,
-        entry: options.entry,
         output: {
             path: options.outputDir,
             pathinfo: isDev,

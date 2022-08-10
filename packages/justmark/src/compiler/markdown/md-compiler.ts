@@ -7,15 +7,21 @@ import { RenderInfo } from './compiler-types';
 
 export class MdCompiler {
     private mdIt: MarkdownIt;
+    public renderInfo: Partial<RenderInfo> = {};
 
-    private renderInfo: Partial<RenderInfo> = {};
-
-    private constructor(options: CompilerOptions) {
-        this.mdIt = generateMarkdownIt(options, this.renderInfo);
+    private static instance: MdCompiler | undefined;
+    public static getInstance(options: CompilerOptions): MdCompiler {
+        this.instance ??= new MdCompiler(options);
+        this.instance.reset();
+        return this.instance;
     }
 
-    public static getInstance(options: CompilerOptions): MdCompiler {
-        return new MdCompiler(options);
+    private constructor(options: CompilerOptions) {
+        this.mdIt = generateMarkdownIt(options, this);
+    }
+
+    private reset(): void {
+        this.renderInfo = {};
     }
 
     public compileMarkdown(markdown: string): string {
@@ -65,7 +71,7 @@ const htmlToJsxConverter = new HTMLtoJSX({ createClass: false, indent: '    ' })
 
 function generateMarkdownIt(
     options: CompilerOptions,
-    renderInfo: Partial<RenderInfo>,
+    mdCompiler: MdCompiler,
 ): MarkdownIt {
     const md = new MarkdownIt({
         html: true,
@@ -85,7 +91,7 @@ function generateMarkdownIt(
     });
 
     md.use(justmarkPlugin, {
-        renderInfo,
+        mdCompiler,
     });
 
     return md;

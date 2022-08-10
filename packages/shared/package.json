@@ -4,11 +4,7 @@
     "main": "./build/index.js",
     "license": "MIT",
     "version": "0.1.0",
-    "dependencies": {
-        "path-nice": "^2.0.5",
-        "react": "^18.2.0"
-    },
-    "devDependencies": {
-        "typescript": "^4.7.4"
+    "scripts": {
+        "build": "tsc"
     }
 }

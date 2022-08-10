@@ -4,24 +4,28 @@
             "name": "✨ justlog",
             "path": "."
         },
+        // {
+        //     "name": "api",
+        //     "path": "packages\\api"
+        // },
         {
-            "name": "🔮 justlog-cli",
-            "path": "packages\\justlog-cli"
+            "name": "cli",
+            "path": "packages\\cli"
         },
         {
-            "name": "📦 justlog-proto",
-            "path": "packages\\justlog-proto"
-        },
-        {
-            "name": "🚀 justlog-proto-backend",
-            "path": "packages\\justlog-proto-backend"
-        },
-        {
-            "name": "⌨️ justmark",
+            "name": "justmark",
             "path": "packages\\justmark"
         },
         {
-            "name": "🚌 shared",
+            "name": "preview",
+            "path": "packages\\preview"
+        },
+        {
+            "name": "web",
+            "path": "packages\\web"
+        },
+        {
+            "name": "shared",
             "path": "packages\\shared"
         }
     ],

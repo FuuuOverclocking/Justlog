@@ -1,23 +1,20 @@
 #!/usr/bin/env node
 
 import { program } from 'commander';
-import { checkSettings, settings } from './settings';
-import { newBlog } from './actions/new-blog';
+import path from 'path-nice';
+import { checkSettings } from './settings';
+import { newBlog, cmdDescription } from './actions/new-blog';
 import { buildBlog } from './actions/build-blog';
 import { viewBlog } from './actions/view-blog';
 import { publishBlog } from './actions/publish-blog';
 import { modifySettings } from './actions/modify-settings';
 
-program.name('justlog').version('0.1.0');
+const packageJson = path(__dirname).join('../package.json').readJSONSync();
+program.name('justlog').version(packageJson.version);
 
 program
     .command('new <blog-name>')
-    .description(
-        '新建一篇名为 <blog-name> 的博客. ' +
-            (settings().blogRootDir
-                ? `将在 ${settings().blogRootDir}/<blog-name> 下创建模板文件.`
-                : `将在 <settings.blogRootDir>/<blog-name> 下创建模板文件.`),
-    )
+    .description(cmdDescription())
     .action((blogName: string) => newBlog(blogName));
 
 program

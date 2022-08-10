@@ -1,13 +1,13 @@
-/// <reference path="%JUSTLOG_DIR%/resources/article.d.ts" />
+/// <reference path="%ARTICLE_DTS_PATH%" />
 
 import React from '#react';
 
-const Button: React.FunctionComponent = () => {
+const Button: React.FC = () => {
     return <button></button>;
 };
 
 declare function blog(): Blog;
-registerBlog({
+(window.blogs ??= []).push({
     ...blog(),
     // 在这里扩展 Blog 对象...
 });

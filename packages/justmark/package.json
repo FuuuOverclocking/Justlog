@@ -19,7 +19,7 @@
         "@svgr/webpack": "^6.3.1",
         "babel-loader": "^8.2.5",
         "babel-preset-react-app": "^10.0.1",
-        "chalk": "^4.1.2",
+        "browserslist": "^4.21.3",
         "cheerio": "^1.0.0-rc.12",
         "css-loader": "^6.7.1",
         "css-minimizer-webpack-plugin": "^3.4.1",
@@ -35,8 +35,8 @@
         "markdown-it-sub": "^1.0.0",
         "markdown-it-sup": "^1.0.0",
         "markdown-it-textual-uml": "^0.11.0",
+        "memfs": "^3.4.7",
         "mini-css-extract-plugin": "^2.6.1",
-        "path-nice": "^2.0.5",
         "postcss": "^8.4.14",
         "postcss-flexbugs-fixes": "^5.0.2",
         "postcss-loader": "^6.2.1",
@@ -47,10 +47,10 @@
         "resolve-url-loader": "^5.0.0",
         "sass": "^1.54.0",
         "sass-loader": "^13.0.2",
+        "shared": "workspace:*",
         "short-uuid": "^4.2.0",
         "terser-webpack-plugin": "^5.3.3",
         "toml": "^3.0.0",
-        "tslib": "^2.4.0",
         "webpack": "^5.74.0"
     },
     "devDependencies": {
@@ -58,9 +58,7 @@
         "@types/htmltojsx": "^0.0.30",
         "@types/markdown-it": "^12.2.3",
         "@types/prettier": "^2.6.3",
-        "@types/react": "^18.0.15",
-        "@types/resolve": "^1.20.2",
-        "typescript": "^4.7.4"
+        "@types/resolve": "^1.20.2"
     },
     "browserslist": {
         "production": [

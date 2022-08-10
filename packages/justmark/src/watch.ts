@@ -1,4 +1,3 @@
-import fs from 'fs';
 import { JustMarkOptions } from './types';
 import { timeout } from 'shared';
 import { log, LogLevel } from './utils/debug';

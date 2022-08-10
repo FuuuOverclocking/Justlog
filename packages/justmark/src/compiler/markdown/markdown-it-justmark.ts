@@ -1,13 +1,14 @@
 import MarkdownIt from 'markdown-it';
 import Toml from 'toml';
 import { RenderInfo } from './compiler-types';
+import { MdCompiler } from './md-compiler';
 
 export interface JustMarkPluginOptions {
-    renderInfo: Partial<RenderInfo>;
+    mdCompiler: MdCompiler;
 }
 
 export function justmarkPlugin(md: MarkdownIt, options: JustMarkPluginOptions): void {
-    const { renderInfo } = options;
+    const { renderInfo } = options.mdCompiler;
     let hasPutBlogMeta = false;
     let tsxembedCounter = 0;
 
