@@ -18,9 +18,9 @@ program
     .action((blogName: string) => newBlog(blogName));
 
 program
-    .command('build')
-    .description(`构建博客.`)
-    .action(() => buildBlog());
+    .command('build [blog-dir]')
+    .description(`构建博客. blog-dir 默认为当前工作目录.`)
+    .action((blogDir) => buildBlog(blogDir));
 
 program
     .command('view')

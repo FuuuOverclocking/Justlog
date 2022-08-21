@@ -4,27 +4,27 @@ import { Paths } from 'shared/build/utils-nodejs';
 import { settings } from '../settings';
 import { panic } from '../utils/debug';
 
-export async function buildBlog(): Promise<void> {
-    const realCwd = await path(process.cwd()).realpath();
+export async function buildBlog(blogDir?: string): Promise<void> {
+    const realBlogDir = await path(blogDir ?? process.cwd()).realpath();
     const realBlogRootDir = await path(settings().blogRootDir).realpath();
-    const relativePath = realCwd.toRelative(realBlogRootDir).separator('/');
+    const relativePath = realBlogDir.toRelative(realBlogRootDir).separator('/');
     
-    check(realCwd, realBlogRootDir);
+    check(realBlogDir, realBlogRootDir, relativePath);
+
     await justmark.build({
-        inputDir: realCwd.raw,
+        inputDir: realBlogDir.raw,
         outputDir: Paths.data.join('built-blogs').join(relativePath).raw,
         targets: ['blog-bundle'],
     });
 }
 
-async function check(realCwd: PathNice, realBlogRootDir: PathNice) {
-    const relativePath = realCwd.toRelative(realBlogRootDir).separator('/');
+async function check(realBlogDir: PathNice, realBlogRootDir: PathNice, relativePath: PathNice) {
     if (!/^\d{4}\.[春夏秋冬]$/.test(relativePath.raw.split('/')[0])) {
         panic('当前目录不是一个博客目录.');
     }
     if (
-        !(await realCwd.join('article.md').isFile()) ||
-        !(await realCwd.join('article.tsx').isFile())
+        !(await realBlogDir.join('article.md').isFile()) ||
+        !(await realBlogDir.join('article.tsx').isFile())
     ) {
         panic('当前目录不是一个博客目录.');
     }
