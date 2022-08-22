@@ -47,7 +47,7 @@ export function checkAndGetInnerOptions(opts: CompilerOptions): CompilerInnerOpt
 export async function compile(opts: CompilerInnerOptions): Promise<void> {
     const timeBegin = Date.now();
 
-    await opts.inputDir.isDir();
+    assert(await opts.inputDir.isDir(), 'inputDir 不存在或不是文件夹.');
     await opts.outputDir.emptyDir();
 
     const inputs = {
