@@ -2,13 +2,13 @@ import ts from 'typescript';
 import shortUUID from 'short-uuid';
 import webpack from 'webpack';
 import path from 'path-nice';
-import { JustMarkOptions, CompilerOptions, allowedTargets } from '../types';
+import { CompilerOptions, CompilerInnerOptions, allowedTargets } from '../types';
 import { log, assert } from '../utils/debug';
 import { MdCompiler } from './markdown/md-compiler';
 import { configFactory } from './webpack.config';
 
-export function checkAndGetCompilerOptions(opts: JustMarkOptions): CompilerOptions {
-    const result: Partial<CompilerOptions> = {};
+export function checkAndGetInnerOptions(opts: CompilerOptions): CompilerInnerOptions {
+    const result: Partial<CompilerInnerOptions> = {};
 
     assert(typeof opts.inputDir === 'string', 'inputDir 应是字符串.');
     assert(typeof opts.outputDir === 'string', 'outputDir 应是字符串.');
@@ -41,10 +41,10 @@ export function checkAndGetCompilerOptions(opts: JustMarkOptions): CompilerOptio
     );
     result.onBuildComplete = opts.onBuildComplete;
 
-    return result as CompilerOptions;
+    return result as CompilerInnerOptions;
 }
 
-export async function compile(opts: CompilerOptions): Promise<void> {
+export async function compile(opts: CompilerInnerOptions): Promise<void> {
     const timeBegin = Date.now();
 
     await opts.inputDir.isDir();
@@ -77,7 +77,7 @@ export async function compile(opts: CompilerOptions): Promise<void> {
 namespace TargetBlogBundle {
     const webpackConfig = (() => {
         let cache = void 0 as any;
-        return (opts: CompilerOptions) => {
+        return (opts: CompilerInnerOptions) => {
             cache ??= configFactory({
                 inputDir: opts.inputDir.raw,
                 outputDir: opts.outputDir.join('./blog-bundle').raw,
@@ -91,7 +91,7 @@ namespace TargetBlogBundle {
             'article.md': string;
             'article.tsx': string;
         },
-        opts: CompilerOptions,
+        opts: CompilerInnerOptions,
     ) {
         const mdCompiler = MdCompiler.getInstance(opts);
         const blogObjectString = mdCompiler.compileMarkdown(inputs['article.md']);

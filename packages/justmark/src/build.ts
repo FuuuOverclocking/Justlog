@@ -1,5 +1,5 @@
-import { checkAndGetCompilerOptions, compile } from './compiler/compile';
-import { JustMarkOptions } from './types';
+import { checkAndGetInnerOptions, compile } from './compiler/compile';
+import { CompilerOptions } from './types';
 import { log, LogLevel } from './utils/debug';
 
 /**
@@ -8,10 +8,10 @@ import { log, LogLevel } from './utils/debug';
  * @param options 编译选项
  * @returns 编译完成时, Promise resolve(void); 发生错误时, reject(err).
  */
-export async function build(options: JustMarkOptions): Promise<void> {
+export async function build(options: CompilerOptions): Promise<void> {
     if (options.silent) log.setLogLevel(LogLevel.None);
 
-    const opts = checkAndGetCompilerOptions(options);
+    const opts = checkAndGetInnerOptions(options);
 
     try {
         await compile(opts);

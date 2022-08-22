@@ -1,7 +1,7 @@
 import MarkdownIt from 'markdown-it';
 import HTMLtoJSX from 'htmltojsx';
 import * as cheerio from 'cheerio';
-import { CompilerOptions } from '../../types';
+import { CompilerInnerOptions } from '../../types';
 import { justmarkPlugin } from './markdown-it-justmark';
 import { RenderInfo } from './compiler-types';
 
@@ -10,13 +10,13 @@ export class MdCompiler {
     public renderInfo: Partial<RenderInfo> = {};
 
     private static instance: MdCompiler | undefined;
-    public static getInstance(options: CompilerOptions): MdCompiler {
+    public static getInstance(options: CompilerInnerOptions): MdCompiler {
         this.instance ??= new MdCompiler(options);
         this.instance.reset();
         return this.instance;
     }
 
-    private constructor(options: CompilerOptions) {
+    private constructor(options: CompilerInnerOptions) {
         this.mdIt = generateMarkdownIt(options, this);
     }
 
@@ -70,7 +70,7 @@ const thirdPartyPlugins = [
 const htmlToJsxConverter = new HTMLtoJSX({ createClass: false, indent: '    ' });
 
 function generateMarkdownIt(
-    options: CompilerOptions,
+    options: CompilerInnerOptions,
     mdCompiler: MdCompiler,
 ): MarkdownIt {
     const md = new MarkdownIt({

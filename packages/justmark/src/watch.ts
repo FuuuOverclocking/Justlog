@@ -1,7 +1,7 @@
-import { JustMarkOptions } from './types';
+import { CompilerOptions } from './types';
 import { timeout } from 'shared';
 import { log, LogLevel } from './utils/debug';
-import { checkAndGetCompilerOptions, compile } from './compiler/compile';
+import { checkAndGetInnerOptions, compile } from './compiler/compile';
 
 /**
  * 监视给定博客文件夹, 持续编译到给定目标, 输出到文件系统. 可使用虚拟文件系统.
@@ -13,11 +13,11 @@ import { checkAndGetCompilerOptions, compile } from './compiler/compile';
  *          调用 stopWatch 可停止监视.
  */
 export async function watch(
-    options: JustMarkOptions,
+    options: CompilerOptions,
 ): Promise<{ stopWatch: () => void }> {
     if (options.silent) log.setLogLevel(LogLevel.None);
 
-    const opts = checkAndGetCompilerOptions(options);
+    const opts = checkAndGetInnerOptions(options);
 
     // rebuild 执行的规则:
     // 1. 完成了一次 rebuild 后, 才能进行下次 rebuild
@@ -79,11 +79,14 @@ export async function watch(
         }
     };
 
-    const watcher = opts.inputDir.watch({
-        persistent: true,
-        recursive: true,
-        encoding: 'utf-8',
-    }, onSourcesChange);
+    const watcher = opts.inputDir.watch(
+        {
+            persistent: true,
+            recursive: true,
+            encoding: 'utf-8',
+        },
+        onSourcesChange,
+    );
 
     log.info('在监视模式下开始编译...');
     useSkill(); // 施法, 但是不等待, 直接返回

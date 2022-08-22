@@ -10,7 +10,7 @@ export type FileSystem = typeof fs | memfs;
 export const allowedTargets = ['blog-bundle', 'zhihu.md'] as const;
 export type Target = typeof allowedTargets[number];
 
-export interface JustMarkOptions {
+export interface CompilerOptions {
     /**
      * 输入文件夹路径. 可设置 inputFileSystem 以使用虚拟文件系统.
      */
@@ -48,7 +48,7 @@ export interface JustMarkOptions {
     silent?: boolean;
 }
 
-export interface CompilerOptions {
+export interface CompilerInnerOptions {
     inputDir: PathNice;
     outputDir: PathNice;
     targets: Set<Target>;
