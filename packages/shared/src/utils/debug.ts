@@ -117,7 +117,8 @@ export function assertFactory(moduleName: string) {
         console.log(str);
 
         printStack();
-        process.exit(-1);
+        if (typeof process !== 'undefined') process.exit(-1);
+        throw 'panicked';
     }
 
     function assert(condition: boolean, msg?: string): void {
@@ -130,7 +131,7 @@ export function assertFactory(moduleName: string) {
         console.log(str);
 
         printStack();
-        process.exit(-1);
+        if (typeof process !== 'undefined') process.exit(-1);
     }
 
     return {
