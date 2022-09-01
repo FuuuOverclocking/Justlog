@@ -141,7 +141,7 @@ namespace TargetBlogBundle {
 
     async function copyResDir(opts: CompilerInnerOptions): Promise<void> {
         const inputRes = path(opts.inputDir.join('res'));
-        const outputRes = path(opts.outputDir.join('res'));
+        const outputRes = path(opts.outputDir.join('blog-bundle/res'));
 
         if (await inputRes.isDir()) {
             await inputRes.copy(outputRes);
