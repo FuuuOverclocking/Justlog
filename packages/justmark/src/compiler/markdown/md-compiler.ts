@@ -5,7 +5,57 @@ import { CompilerInnerOptions } from '../../types';
 import { justmarkPlugin } from './markdown-it-justmark';
 import { RenderInfo } from './compiler-types';
 
+const htmlToJsxConverter = new HTMLtoJSX({
+    createClass: false,
+    indent: '    ',
+});
+
 export class MdCompiler {
+    private static readonly thirdPartyPlugins = [
+        require('markdown-it-sub'),
+        require('markdown-it-sup'),
+        require('markdown-it-abbr'),
+        require('markdown-it-footnote'),
+        require('markdown-it-mark'),
+        require('@iktakahiro/markdown-it-katex'),
+        [
+            require('markdown-it-multimd-table'),
+            {
+                multiline: false,
+                rowspan: true,
+                headerless: true,
+            },
+        ],
+        require('markdown-it-textual-uml'),
+    ];
+    private static generateMarkdownIt(
+        opts: CompilerInnerOptions,
+        mdCompiler: MdCompiler,
+    ): MarkdownIt {
+        const md = new MarkdownIt({
+            html: true,
+            xhtmlOut: true,
+            langPrefix: '',
+            linkify: true,
+            typographer: false,
+            highlight: null,
+        });
+
+        MdCompiler.thirdPartyPlugins.forEach((plugin: any) => {
+            if (Array.isArray(plugin)) {
+                md.use(...(plugin as [any, any]));
+            } else {
+                md.use(plugin);
+            }
+        });
+
+        md.use(justmarkPlugin, {
+            mdCompiler,
+        });
+
+        return md;
+    }
+
     private mdIt: MarkdownIt;
     public renderInfo: Partial<RenderInfo> = {};
 
@@ -17,7 +67,7 @@ export class MdCompiler {
     }
 
     private constructor(options: CompilerInnerOptions) {
-        this.mdIt = generateMarkdownIt(options, this);
+        this.mdIt = MdCompiler.generateMarkdownIt(options, this);
     }
 
     private reset(): void {
@@ -47,52 +97,4 @@ export class MdCompiler {
         const metaString = JSON.stringify(meta, null, 4);
         return `{ ...${metaString}, content: ${jsx} }`;
     }
-}
-
-const thirdPartyPlugins = [
-    require('markdown-it-sub'),
-    require('markdown-it-sup'),
-    require('markdown-it-abbr'),
-    require('markdown-it-footnote'),
-    require('markdown-it-mark'),
-    require('@iktakahiro/markdown-it-katex'),
-    [
-        require('markdown-it-multimd-table'),
-        {
-            multiline: false,
-            rowspan: true,
-            headerless: true,
-        },
-    ],
-    require('markdown-it-textual-uml'),
-];
-
-const htmlToJsxConverter = new HTMLtoJSX({ createClass: false, indent: '    ' });
-
-function generateMarkdownIt(
-    options: CompilerInnerOptions,
-    mdCompiler: MdCompiler,
-): MarkdownIt {
-    const md = new MarkdownIt({
-        html: true,
-        xhtmlOut: true,
-        langPrefix: '',
-        linkify: true,
-        typographer: false,
-        highlight: null,
-    });
-
-    thirdPartyPlugins.forEach((plugin: any) => {
-        if (Array.isArray(plugin)) {
-            md.use(...(plugin as [any, any]));
-        } else {
-            md.use(plugin);
-        }
-    });
-
-    md.use(justmarkPlugin, {
-        mdCompiler,
-    });
-
-    return md;
 }

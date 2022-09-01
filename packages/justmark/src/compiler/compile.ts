@@ -93,31 +93,26 @@ namespace TargetBlogBundle {
         },
         opts: CompilerInnerOptions,
     ) {
-        const mdCompiler = MdCompiler.getInstance(opts);
-        const blogObjectString = mdCompiler.compileMarkdown(inputs['article.md']);
-        const code = mixBlogIntoTsx(inputs['article.tsx'], blogObjectString);
+        const promiseCopyResDir = copyResDir(opts);
 
-        const sourceFile = ts.createSourceFile(
-            'blog.tsx',
-            code,
-            ts.ScriptTarget.ES2018,
-            true,
-            ts.ScriptKind.TSX,
-        );
-        const importDeclToTranspile = findImportDeclToTranspile(sourceFile);
-        const codeImportTranspiled = transpileImportDecl(code, importDeclToTranspile);
+        let code = inputs['article.tsx'];
+
+        const mdCompiler = MdCompiler.getInstance(opts);
+        const stringedBlogObject = mdCompiler.compileMarkdown(inputs['article.md']);
+
+        code = injectBlogIntoTsx(code, stringedBlogObject);
+
+        let blogModuleInfo: { needModule: string[] };
+        [code, blogModuleInfo] = transpileImportDeclaration(code);
 
         // 在 inputDir 下创建一个临时文件, 作为 webpack 的入口
         const tmpFile = opts.inputDir.join(`.tmp.${shortUUID.generate()}.tsx`);
 
-        await tmpFile.writeFile(codeImportTranspiled);
+        await tmpFile.writeFile(code);
         try {
             await pack();
-
-            const info = {
-                needModule: importDeclToTranspile.map((decl) => decl.moduleRealName),
-            };
-            await opts.outputDir.join('blog-bundle/info.json').writeJSON(info);
+            await writeInfo();
+            await promiseCopyResDir;
         } finally {
             await tmpFile.remove();
         }
@@ -136,9 +131,24 @@ namespace TargetBlogBundle {
                 });
             });
         }
+        async function writeInfo() {
+            const info = {
+                ...blogModuleInfo,
+            };
+            await opts.outputDir.join('blog-bundle/info.json').writeJSON(info);
+        }
     }
 
-    function mixBlogIntoTsx(tsx: string, blogObjectString: string): string {
+    async function copyResDir(opts: CompilerInnerOptions): Promise<void> {
+        const inputRes = path(opts.inputDir.join('res'));
+        const outputRes = path(opts.outputDir.join('res'));
+
+        if (await inputRes.isDir()) {
+            await inputRes.copy(outputRes);
+        }
+    }
+
+    function injectBlogIntoTsx(tsx: string, blogObjectString: string): string {
         const blogDeclaration = 'declare function blog(): Blog;';
         if (tsx.indexOf(blogDeclaration) === -1) {
             throw new Error(`在 article.tsx 未找到 \`${blogDeclaration}\` 声明.`);
@@ -152,89 +162,107 @@ namespace TargetBlogBundle {
         return tsx;
     }
 
-    function findImportDeclToTranspile(sourceFile: ts.SourceFile): Array<{
-        name: string;
-        moduleName: string;
-        moduleRealName: string;
-        pos: number;
-        end: number;
-    }> {
-        const importDeclToTranspile: Array<{
+    function transpileImportDeclaration(
+        code: string,
+    ): [string, { needModule: string[] }] {
+        const sourceFile = ts.createSourceFile(
+            'blog.tsx',
+            code,
+            ts.ScriptTarget.ES2018,
+            true,
+            ts.ScriptKind.TSX,
+        );
+        const importDeclToTranspile = findImportDeclToTranspile(sourceFile);
+        code = _transpileImportDeclaration(code, importDeclToTranspile);
+        const info = {
+            needModule: importDeclToTranspile.map((decl) => decl.moduleRealName),
+        };
+        return [code, info];
+
+        function findImportDeclToTranspile(sourceFile: ts.SourceFile): Array<{
             name: string;
             moduleName: string;
             moduleRealName: string;
             pos: number;
             end: number;
-        }> = [];
+        }> {
+            const importDeclToTranspile: Array<{
+                name: string;
+                moduleName: string;
+                moduleRealName: string;
+                pos: number;
+                end: number;
+            }> = [];
 
-        ts.forEachChild(sourceFile, (node) => {
-            const _node = node as ts.ImportDeclaration;
-            if (_node.kind !== ts.SyntaxKind.ImportDeclaration) return;
+            ts.forEachChild(sourceFile, (node) => {
+                const _node = node as ts.ImportDeclaration;
+                if (_node.kind !== ts.SyntaxKind.ImportDeclaration) return;
 
-            const moduleSpecifier = _node.moduleSpecifier as ts.StringLiteral;
-            if (moduleSpecifier.kind !== ts.SyntaxKind.StringLiteral) {
-                throw new Error('import 语句不符合 TypeScript 语法.');
-            }
+                const moduleSpecifier = _node.moduleSpecifier as ts.StringLiteral;
+                if (moduleSpecifier.kind !== ts.SyntaxKind.StringLiteral) {
+                    throw new Error('import 语句不符合 TypeScript 语法.');
+                }
 
-            const moduleName = moduleSpecifier.text;
-            if (
-                !moduleName.startsWith('./') &&
-                !moduleName.startsWith('../') &&
-                !moduleName.startsWith('/') &&
-                !moduleName.startsWith('#')
-            ) {
-                throw new Error('不能在 JustMark 中直接使用非相对导入.');
-            }
-            if (!moduleName.startsWith('#')) return;
+                const moduleName = moduleSpecifier.text;
+                if (
+                    !moduleName.startsWith('./') &&
+                    !moduleName.startsWith('../') &&
+                    !moduleName.startsWith('/') &&
+                    !moduleName.startsWith('#')
+                ) {
+                    throw new Error('不能在 JustMark 中直接使用非相对导入.');
+                }
+                if (!moduleName.startsWith('#')) return;
 
-            const importClause = _node.importClause as ts.ImportClause;
-            if (importClause.isTypeOnly) {
-                throw new Error('不能在 JustMark 中使用 import type ...');
-            }
-            if (importClause.namedBindings) {
-                throw new Error('不能在 JustMark 中使用导入命名绑定.');
-            }
-            if (!importClause.name) {
-                throw new Error('非相对导入的 importClause 的标识符不存在.');
-            }
+                const importClause = _node.importClause as ts.ImportClause;
+                if (importClause.isTypeOnly) {
+                    throw new Error('不能在 JustMark 中使用 import type ...');
+                }
+                if (importClause.namedBindings) {
+                    throw new Error('不能在 JustMark 中使用导入命名绑定.');
+                }
+                if (!importClause.name) {
+                    throw new Error('非相对导入的 importClause 的标识符不存在.');
+                }
 
-            importDeclToTranspile.push({
-                name: importClause.name.escapedText as string,
-                moduleName,
-                moduleRealName: moduleName.substring(1),
-                pos: _node.pos + _node.getLeadingTriviaWidth(),
-                end: _node.end,
+                importDeclToTranspile.push({
+                    name: importClause.name.escapedText as string,
+                    moduleName,
+                    moduleRealName: moduleName.substring(1),
+                    pos: _node.pos + _node.getLeadingTriviaWidth(),
+                    end: _node.end,
+                });
             });
-        });
 
-        return importDeclToTranspile;
-    }
-
-    function transpileImportDecl(
-        codeInput: string,
-        importDeclToTranspile: Array<{
-            name: string;
-            moduleName: string;
-            moduleRealName: string;
-            pos: number;
-            end: number;
-        }>,
-    ): string {
-        const originalParts: string[] = [];
-        let pos = 0;
-        for (const decl of importDeclToTranspile) {
-            originalParts.push(codeInput.substring(pos, decl.pos));
-            pos = decl.end;
+            return importDeclToTranspile;
         }
-        originalParts.push(codeInput.substring(pos));
 
-        let codeImportTranspiled = '';
-        for (const [i, decl] of importDeclToTranspile.entries()) {
-            codeImportTranspiled += originalParts[i];
-            codeImportTranspiled += `const ${decl.name} = giveme('${decl.moduleRealName}');`;
+        function _transpileImportDeclaration(
+            codeInput: string,
+            importDeclToTranspile: Array<{
+                name: string;
+                moduleName: string;
+                moduleRealName: string;
+                pos: number;
+                end: number;
+            }>,
+        ): string {
+            const originalParts: string[] = [];
+            let pos = 0;
+            for (const decl of importDeclToTranspile) {
+                originalParts.push(codeInput.substring(pos, decl.pos));
+                pos = decl.end;
+            }
+            originalParts.push(codeInput.substring(pos));
+
+            let codeImportTranspiled = '';
+            for (const [i, decl] of importDeclToTranspile.entries()) {
+                codeImportTranspiled += originalParts[i];
+                codeImportTranspiled += `const ${decl.name} = giveme('${decl.moduleRealName}');`;
+            }
+            codeImportTranspiled += originalParts[originalParts.length - 1];
+
+            return codeImportTranspiled;
         }
-        codeImportTranspiled += originalParts[originalParts.length - 1];
-
-        return codeImportTranspiled;
     }
 }
