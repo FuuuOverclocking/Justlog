@@ -8,7 +8,7 @@ export interface JustMarkPluginOptions {
 }
 
 export function justmarkPlugin(md: MarkdownIt, options: JustMarkPluginOptions): void {
-    const { renderInfo } = options.mdCompiler;
+    const { mdCompiler } = options;
     let hasPutBlogMeta = false;
     let tsxembedCounter = 0;
 
@@ -24,8 +24,8 @@ export function justmarkPlugin(md: MarkdownIt, options: JustMarkPluginOptions): 
 
         if (infos[0] === 'tsx' && infos[1] === 'embed') {
             const tag = 'tsxembed-' + (tsxembedCounter++);
-            renderInfo.tsxembed ??= new Map();
-            renderInfo.tsxembed.set(tag, token.content);
+            mdCompiler.renderInfo.tsxembed ??= new Map();
+            mdCompiler.renderInfo.tsxembed.set(tag, token.content);
             return `<${tag}></${tag}>`;
         }
 
@@ -33,7 +33,7 @@ export function justmarkPlugin(md: MarkdownIt, options: JustMarkPluginOptions): 
             const blogMeta = Toml.parse(token.content);
             if (!hasPutBlogMeta) {
                 hasPutBlogMeta = true;
-                renderInfo.blogMeta = blogMeta;
+                mdCompiler.renderInfo.blogMeta = blogMeta;
             }
             return '';
         }
