@@ -12,15 +12,15 @@ export function justmarkPlugin(md: MarkdownIt, options: JustMarkPluginOptions): 
     let hasPutBlogMeta = false;
     let tsxembedCounter = 0;
 
-    const defaultRenderer = md.renderer.rules.fence!.bind(md.renderer.rules);
+    const defaultFenceRenderer = md.renderer.rules.fence!.bind(md.renderer.rules);
 
     md.renderer.rules.fence = (tokens, idx, mdOptions, env, slf) => {
         const token = tokens[idx];
 
-        if (!token.info) return defaultRenderer(tokens, idx, mdOptions, env, slf);
+        if (!token.info) return defaultFenceRenderer(tokens, idx, mdOptions, env, slf);
         const info = md.utils.unescapeAll(token.info).trim();
         const infos = info.split(/\s+/g);
-        if (infos.length === 0) return defaultRenderer(tokens, idx, mdOptions, env, slf);
+        if (infos.length === 0) return defaultFenceRenderer(tokens, idx, mdOptions, env, slf);
 
         if (infos[0] === 'tsx' && infos[1] === 'embed') {
             const tag = 'tsxembed-' + (tsxembedCounter++);
@@ -38,6 +38,6 @@ export function justmarkPlugin(md: MarkdownIt, options: JustMarkPluginOptions): 
             return '';
         }
 
-        return defaultRenderer(tokens, idx, mdOptions, env, slf);
+        return defaultFenceRenderer(tokens, idx, mdOptions, env, slf);
     };
 }
