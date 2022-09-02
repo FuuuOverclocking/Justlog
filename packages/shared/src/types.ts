@@ -11,4 +11,5 @@ export interface BlogMeta {
     topics?: string[];
     lang?: '简体中文' | 'English';
     bgImage?: string;
+    path?: string;
 }

@@ -2,7 +2,12 @@ import ts from 'typescript';
 import shortUUID from 'short-uuid';
 import webpack from 'webpack';
 import path from 'path-nice';
-import { CompilerOptions, CompilerInnerOptions, allowedTargets } from '../types';
+import {
+    CompilerOptions,
+    CompilerInnerOptions,
+    allowedTargets,
+    BlogMeta,
+} from '../types';
 import { log, assert } from '../utils/debug';
 import { MdCompiler } from './markdown/md-compiler';
 import { configFactory } from './webpack.config';
@@ -40,6 +45,13 @@ export function checkAndGetInnerOptions(opts: CompilerOptions): CompilerInnerOpt
         '若指定 onBuildComplete, 应为 () => Promise<void> | void.',
     );
     result.onBuildComplete = opts.onBuildComplete;
+    result.blogBundle = opts.blogBundle;
+    if (result.blogBundle?.addPathToMeta) {
+        assert(
+            typeof result.blogBundle.blogRootDir === 'string',
+            '启用了 addPathToMeta 时必须指定 blogRootDir.',
+        );
+    }
 
     return result as CompilerInnerOptions;
 }
@@ -98,9 +110,14 @@ namespace TargetBlogBundle {
         let code = inputs['article.tsx'];
 
         const mdCompiler = MdCompiler.getInstance(opts);
-        const stringedBlogObject = mdCompiler.compileMarkdown(inputs['article.md']);
+        let { meta, content } = mdCompiler.compileMarkdown(inputs['article.md']);
 
-        code = injectBlogIntoTsx(code, stringedBlogObject);
+        if (opts.blogBundle?.addPathToMeta) {
+            meta = addPathToMeta(meta, opts);
+        }
+
+        const stringedBlogObject = genStringedBlogObject(meta, content);
+        code = injectStringedBlogObjectIntoTsx(code, stringedBlogObject);
 
         let blogModuleInfo: { needModule: string[] };
         [code, blogModuleInfo] = transpileImportDeclaration(code);
@@ -148,7 +165,28 @@ namespace TargetBlogBundle {
         }
     }
 
-    function injectBlogIntoTsx(tsx: string, blogObjectString: string): string {
+    function addPathToMeta(meta: BlogMeta, opts: CompilerInnerOptions): BlogMeta {
+        meta.path = opts.inputDir
+            .toRelative(opts.blogBundle!.blogRootDir!)
+            .separator('/').raw;
+
+        const parts = meta.path.split('/');
+        assert(
+            parts.length >= 1 && parts[0] !== '..' && parts[0] !== '.',
+            'inputDir 似乎不在 blogRootDir 目录下',
+        );
+
+        return meta;
+    }
+
+    function genStringedBlogObject(meta: BlogMeta, content: string): string {
+        return `{ ...${JSON.stringify(meta, null, 4)}, content: ${content} }`;
+    }
+
+    function injectStringedBlogObjectIntoTsx(
+        tsx: string,
+        blogObjectString: string,
+    ): string {
         const blogDeclaration = 'declare function blog(): Blog;';
         if (tsx.indexOf(blogDeclaration) === -1) {
             throw new Error(`在 article.tsx 未找到 \`${blogDeclaration}\` 声明.`);

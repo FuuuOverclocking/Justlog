@@ -1,7 +1,7 @@
 import MarkdownIt from 'markdown-it';
 import HTMLtoJSX from 'htmltojsx';
 import * as cheerio from 'cheerio';
-import { CompilerInnerOptions } from '../../types';
+import { CompilerInnerOptions, BlogMeta } from '../../types';
 import { justmarkPlugin } from './markdown-it-justmark';
 import { RenderInfo } from './compiler-types';
 
@@ -74,7 +74,10 @@ export class MdCompiler {
         this.renderInfo = {};
     }
 
-    public compileMarkdown(markdown: string): string {
+    public compileMarkdown(markdown: string): {
+        meta: BlogMeta;
+        content: string;
+    } {
         const html = this.mdIt.render(markdown);
         const info = this.renderInfo;
 
@@ -94,7 +97,9 @@ export class MdCompiler {
             }
         }
 
-        const metaString = JSON.stringify(meta, null, 4);
-        return `{ ...${metaString}, content: ${jsx} }`;
+        return {
+            meta: meta as BlogMeta,
+            content: jsx,
+        };
     }
 }

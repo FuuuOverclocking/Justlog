@@ -46,6 +46,19 @@ export interface CompilerOptions {
      * silent = true 时, 禁止 JustMark 输出日志.
      */
     silent?: boolean;
+
+    /**
+     * 特定于 blogBundle 构建目标的设置.
+     */
+    blogBundle?: {
+        /**
+         * 根据输入文件夹相对于 blogRootDir 的位置, 向生成的 Blog 对象添加元数据项 path.
+         *
+         * addPathToMeta 为 true 时, 必须设置 blogRootDir.
+         */
+        addPathToMeta?: boolean;
+        blogRootDir?: string;
+    };
 }
 
 export interface CompilerInnerOptions {
@@ -53,4 +66,8 @@ export interface CompilerInnerOptions {
     outputDir: PathNice;
     targets: Set<Target>;
     onBuildComplete: null | (() => Promise<void> | void);
+    blogBundle?: {
+        addPathToMeta?: boolean;
+        blogRootDir?: string;
+    };
 }
