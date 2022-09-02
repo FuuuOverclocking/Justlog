@@ -15,6 +15,10 @@ export async function buildBlog(blogDir?: string): Promise<void> {
         inputDir: realBlogDir.raw,
         outputDir: Paths.data.join('built-blogs').join(relativePath).raw,
         targets: ['blog-bundle'],
+        blogBundle: {
+            addPathToMeta: true,
+            blogRootDir: settings().blogRootDir,
+        }
     });
 }
 
